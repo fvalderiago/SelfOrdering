@@ -1,0 +1,19 @@
+{
+  "name": "selfordering",
+  "version": "1.0.0",
+  "description": "Self Ordering project",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fvalderiago/SelfOrdering.git"
+  },
+  "author": "Frances Go",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/fvalderiago/SelfOrdering/issues"
+  },
+  "homepage": "https://github.com/fvalderiago/SelfOrdering#readme"
+}
