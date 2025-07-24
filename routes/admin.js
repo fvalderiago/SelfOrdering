@@ -168,15 +168,6 @@ router.get('/menus/:id/edit', async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-/* ---------- Update (PUT method‑override) ---------- */
-// router.put('/menus/:id', async (req, res, next) => {
-//   try {
-//     await updateMenuItem(req.params.id, req.body);
-//     res.redirect('/admin/view-menu');
-//   } catch (err) { next(err); }
-// });
-
-
 router.put('/menus/:id', uploadFood.single('foodImage'), async (req, res, next) => {
   try {
     const menuItem   = await getMenuItemById(req.params.id);

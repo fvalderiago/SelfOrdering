@@ -1,239 +1,239 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <%- include('../partials/header1.ejs') %>
-  <link rel="stylesheet" href="/public/css/chef.css" />
-  <style>
-        body, html {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-            font-family: 'Lato', sans-serif;
-            background-color: #f4f6f8;
-        }
+    <head>
+    <%- include('../partials/header1.ejs') %>
+    <link rel="stylesheet" href="/public/css/chef.css" />
+    <style>
+            body, html {
+                margin: 0;
+                padding: 0;
+                height: 100%;
+                font-family: 'Lato', sans-serif;
+                background-color: #f4f6f8;
+            }
 
-        .admin-container {
-            display: flex;
-            min-height: 100vh;
-        }
-
-        /* Sidebar */
-        .sidebar {
-            width: 260px;
-            background-color: #007676;
-            color: white;
-            padding: 25px;
-            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
-            display: flex;
-            flex-direction: column;
-            padding-top: 120px;
-        }
-
-        .sidebar h2 {
-            font-size: 22px;
-            margin-bottom: 25px;
-            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
-            padding-bottom: 12px;
-        }
-
-        .menu-item {
-            padding: 12px 18px;
-            color: #d0e7e7;
-            font-size: 15px;
-            text-decoration: none;
-            border-radius: 6px;
-            margin-bottom: 10px;
-            transition: all 0.3s ease;
-        }
-
-        .menu-item:hover,
-        .menu-item.active {
-            background-color: #00a6a6;
-            color: white;
-        }
-
-        /* Main content */
-        .main-content {
-            flex: 1;
-            padding: 90px 60px;
-            background-color: white;
-            display: flex;
-            flex-direction: column;
-        }
-
-        h1 {
-            font-size: 32px;
-            color: #2f3e46;
-            margin-bottom: 10px;
-        }
-
-        .welcome {
-            font-size: 18px;
-            color: #444;
-            margin-bottom: 20px;
-        }
-
-        .welcome span {
-            color: #007676;
-            font-weight: 600;
-        }
-
-        .info-card {
-            background: #e9f7f6;
-            border-left: 6px solid #00a6a6;
-            padding: 20px 25px;
-            border-radius: 8px;
-            color: #333;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-            font-size: 16px;
-        }
-
-        /* Footer */
-        footer {
-            text-align: center;
-            padding: 12px;
-            font-size: 0.9rem;
-            color: #555;
-            background-color: #f1f1f1;
-            border-top: 1px solid #ddd;
-        }
-
-        @media (max-width: 768px) {
             .admin-container {
+                display: flex;
+                min-height: 100vh;
+            }
+
+            /* Sidebar */
+            .sidebar {
+                width: 260px;
+                background-color: #007676;
+                color: white;
+                padding: 25px;
+                box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+                display: flex;
+                flex-direction: column;
+                padding-top: 120px;
+            }
+
+            .sidebar h2 {
+                font-size: 22px;
+                margin-bottom: 25px;
+                border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+                padding-bottom: 12px;
+            }
+
+            .menu-item {
+                padding: 12px 18px;
+                color: #d0e7e7;
+                font-size: 15px;
+                text-decoration: none;
+                border-radius: 6px;
+                margin-bottom: 10px;
+                transition: all 0.3s ease;
+            }
+
+            .menu-item:hover,
+            .menu-item.active {
+                background-color: #00a6a6;
+                color: white;
+            }
+
+            /* Main content */
+            .main-content {
+                flex: 1;
+                padding: 90px 60px;
+                background-color: white;
+                display: flex;
                 flex-direction: column;
             }
-            .sidebar {
-                width: 100%;
-                flex-direction: row;
-                overflow-x: auto;
+
+            h1 {
+                font-size: 32px;
+                color: #2f3e46;
+                margin-bottom: 10px;
             }
-            .menu-item {
-                margin-right: 10px;
-                margin-bottom: 0;
+
+            .welcome {
+                font-size: 18px;
+                color: #444;
+                margin-bottom: 20px;
             }
-        }
-    </style>
-</head>
 
-<body>
-    <header>
-        <%- include('../partials/navbar-chef.ejs') %>
-    </header>
-    
-    <div class="admin-container">
-        <nav class="sidebar">
-            <h2>Chef Menu</h2>
-            <a href="/chef/track-order" class="menu-item">Track Orders</a>
-            <a href="/chef/reports" class="menu-item">Reports</a>
-        </nav>
+            .welcome span {
+                color: #007676;
+                font-weight: 600;
+            }
 
-        <section class="main-content">
-            <!-- <div class="chef-container"> -->
-                <h1>Chef Order Tracker</h1>
+            .info-card {
+                background: #e9f7f6;
+                border-left: 6px solid #00a6a6;
+                padding: 20px 25px;
+                border-radius: 8px;
+                color: #333;
+                box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+                font-size: 16px;
+            }
 
-                <table class="chef-table" id="chef-orders">
-                <thead>
-                    <tr>
-                    <th>Order ID</th>
-                    <th>Table</th>
-                    <th>Time</th>
-                    <th>Status / Actions</th>
-                    <th>Items</th>
-                    <th>Special Instructions</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-                </table>
-            <!-- </div> -->
-        </section>
-    </div>
+            /* Footer */
+            footer {
+                text-align: center;
+                padding: 12px;
+                font-size: 0.9rem;
+                color: #555;
+                background-color: #f1f1f1;
+                border-top: 1px solid #ddd;
+            }
 
-    <script>
-        function fetchChefOrders() {
-            fetch('/api/chef/orders')
-                .then(res => res.json())
-                .then(data => {
-                console.log('Raw API data:', data); // Debug raw data
+            @media (max-width: 768px) {
+                .admin-container {
+                    flex-direction: column;
+                }
+                .sidebar {
+                    width: 100%;
+                    flex-direction: row;
+                    overflow-x: auto;
+                }
+                .menu-item {
+                    margin-right: 10px;
+                    margin-bottom: 0;
+                }
+            }
+        </style>
+    </head>
 
-                const groupedOrders = {};
+    <body>
+        <header>
+            <%- include('../partials/navbar-chef.ejs') %>
+        </header>
+        
+        <div class="admin-container">
+            <nav class="sidebar">
+                <h2>Chef Menu</h2>
+                <a href="/chef/track-order" class="menu-item">Track Orders</a>
+                <a href="/chef/reports" class="menu-item">Reports</a>
+            </nav>
 
-                data.forEach(item => {
-                    if (!groupedOrders[item.orderID]) {
-                    groupedOrders[item.orderID] = {
-                        orderID: item.orderID,
-                        tableName: item.tableName,
-                        orderTime: item.orderTime,
-                        status: item.status,
-                        specialInstructions: item.specialInstructions,
-                        items: []
-                    };
-                    }
+            <section class="main-content">
+                <!-- <div class="chef-container"> -->
+                    <h1>Chef Order Tracker</h1>
 
-                    // Defensive check: item.dietary may be null or empty
-                    const dietaryArray = item.dietary
-                    ? [...new Set(item.dietary.split(',').map(tag => tag.trim()))]
-                    : [];
+                    <table class="chef-table" id="chef-orders">
+                    <thead>
+                        <tr>
+                        <th>Order ID</th>
+                        <th>Table</th>
+                        <th>Time</th>
+                        <th>Status / Actions</th>
+                        <th>Items</th>
+                        <th>Special Instructions</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                    </table>
+                <!-- </div> -->
+            </section>
+        </div>
 
-                    // Create dietary tags html
-                    const dietaryTagsHTML = dietaryArray.length
-                    ? `<div class="dietary-tags">${dietaryArray.map(tag => `<span class="diet-tag">${tag}</span>`).join(' ')}</div>`
-                    : '';
+        <script>
+            function fetchChefOrders() {
+                fetch('/api/chef/orders')
+                    .then(res => res.json())
+                    .then(data => {
+                    console.log('Raw API data:', data); // Debug raw data
 
-                    // Push item string with dietary tags
-                    groupedOrders[item.orderID].items.push(`
-                    <div>
-                        <strong>${item.foodName}</strong> × ${item.quantity}
-                        ${dietaryTagsHTML}
-                    </div>
-                    `);
-                });
+                    const groupedOrders = {};
 
-                console.log('Grouped Orders:', groupedOrders); // Debug grouped data
+                    data.forEach(item => {
+                        if (!groupedOrders[item.orderID]) {
+                        groupedOrders[item.orderID] = {
+                            orderID: item.orderID,
+                            tableName: item.tableName,
+                            orderTime: item.orderTime,
+                            status: item.status,
+                            specialInstructions: item.specialInstructions,
+                            items: []
+                        };
+                        }
 
-                // Render table rows
-                const tbody = document.querySelector('#chef-orders tbody');
-                tbody.innerHTML = '';
+                        // Defensive check: item.dietary may be null or empty
+                        const dietaryArray = item.dietary
+                        ? [...new Set(item.dietary.split(',').map(tag => tag.trim()))]
+                        : [];
 
-                Object.values(groupedOrders).forEach(order => {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                    <td>${order.orderID}</td>
-                    <td>${order.tableName}</td>
-                    <td>${new Date(order.orderTime).toLocaleString()}</td>
-                    <td>
-                        ${order.status || 'Pending'}<br>
-                        <button class="status-btn start" onclick="updateOrderStatus(${order.orderID}, 'In Progress')">Start</button>
-                        <button class="status-btn complete" onclick="updateOrderStatus(${order.orderID}, 'Completed')">Complete</button>
-                    </td>
-                    <td>${order.items.join('')}</td>
-                    <td>${order.specialInstructions || 'None'}</td>
-                    `;
-                    tbody.appendChild(tr);
-                });
+                        // Create dietary tags html
+                        const dietaryTagsHTML = dietaryArray.length
+                        ? `<div class="dietary-tags">${dietaryArray.map(tag => `<span class="diet-tag">${tag}</span>`).join(' ')}</div>`
+                        : '';
+
+                        // Push item string with dietary tags
+                        groupedOrders[item.orderID].items.push(`
+                        <div>
+                            <strong>${item.foodName}</strong> × ${item.quantity}
+                            ${dietaryTagsHTML}
+                        </div>
+                        `);
+                    });
+
+                    console.log('Grouped Orders:', groupedOrders); // Debug grouped data
+
+                    // Render table rows
+                    const tbody = document.querySelector('#chef-orders tbody');
+                    tbody.innerHTML = '';
+
+                    Object.values(groupedOrders).forEach(order => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                        <td>${order.orderID}</td>
+                        <td>${order.tableName}</td>
+                        <td>${new Date(order.orderTime).toLocaleString()}</td>
+                        <td>
+                            ${order.status || 'Pending'}<br>
+                            <button class="status-btn start" onclick="updateOrderStatus(${order.orderID}, 'In Progress')">Start</button>
+                            <button class="status-btn complete" onclick="updateOrderStatus(${order.orderID}, 'Completed')">Complete</button>
+                        </td>
+                        <td>${order.items.join('')}</td>
+                        <td>${order.specialInstructions || 'None'}</td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                    })
+                    .catch(err => console.error('Fetch error:', err));
+                }
+
+
+            function updateOrderStatus(orderId, newStatus) {
+                fetch(`/api/chef/orders/${orderId}/status`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: newStatus })
                 })
-                .catch(err => console.error('Fetch error:', err));
+                .then(res => res.json())
+                .then(result => {
+                if (result.success) {
+                    fetchChefOrders();
+                } else {
+                    alert("Failed to update status");
+                }
+                });
             }
 
+            setInterval(fetchChefOrders, 5000);
+            document.addEventListener('DOMContentLoaded', fetchChefOrders);
+        </script>
 
-        function updateOrderStatus(orderId, newStatus) {
-            fetch(`/api/chef/orders/${orderId}/status`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ status: newStatus })
-            })
-            .then(res => res.json())
-            .then(result => {
-            if (result.success) {
-                fetchChefOrders();
-            } else {
-                alert("Failed to update status");
-            }
-            });
-        }
-
-        setInterval(fetchChefOrders, 5000);
-        document.addEventListener('DOMContentLoaded', fetchChefOrders);
-    </script>
-
-</body>
+    </body>
 </html>

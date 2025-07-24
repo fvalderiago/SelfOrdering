@@ -105,4 +105,3 @@ if (toggleBtn && panel && overlay && closeBtn) {
     overlay.style.display = "none";
   });
 }
-

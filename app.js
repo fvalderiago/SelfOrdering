@@ -77,8 +77,6 @@ app.post('/reset-password', async (req, res) => {
   res.send(`<script>alert('Password reset successful!');history.back();</script>`);
 });
 
-
-
 app.get('/forgot-password', (req, res) => {
     res.render('forgot-password', {currentRoute: 'forgot-password'});
 });

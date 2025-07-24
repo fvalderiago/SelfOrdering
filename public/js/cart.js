@@ -109,8 +109,6 @@ function getCart() {
       });
     }
 
-
-
    document.addEventListener("DOMContentLoaded", async () => {
       await loadDietaryMap();     // ← Wait for dietary names
       renderCart();

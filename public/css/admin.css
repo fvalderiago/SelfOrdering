@@ -69,99 +69,99 @@ body {             /* keeps sidebar + content side‑by‑side */
 
 /* -------------  Base layout (inherits from dashboard) ------------- */
         
-        .admin-container { display: flex; min-height: 100vh; }
+      .admin-container { display: flex; min-height: 100vh; }
 
-        /* -------------  Sidebar (identical to dashboard) ------------- */
-        .sidebar { width: 260px; background-color: #007676; color: white; padding: 25px; box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1); display: flex; flex-direction: column; padding-top: 120px;}
-        .sidebar h2 { font-size: 22px; margin-bottom: 25px; border-bottom: 2px solid rgba(255, 255, 255, 0.2); padding-bottom: 12px; }
-        .menu-item { padding: 12px 18px; color: #d0e7e7; font-size: 15px; text-decoration: none; border-radius: 6px; margin-bottom: 10px; transition: all 0.3s ease; }
-        .menu-item:hover, .menu-item.active { background-color: #00a6a6; color: white; }
+      /* -------------  Sidebar (identical to dashboard) ------------- */
+      .sidebar { width: 260px; background-color: #007676; color: white; padding: 25px; box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1); display: flex; flex-direction: column; padding-top: 120px;}
+      .sidebar h2 { font-size: 22px; margin-bottom: 25px; border-bottom: 2px solid rgba(255, 255, 255, 0.2); padding-bottom: 12px; }
+      .menu-item { padding: 12px 18px; color: #d0e7e7; font-size: 15px; text-decoration: none; border-radius: 6px; margin-bottom: 10px; transition: all 0.3s ease; }
+      .menu-item:hover, .menu-item.active { background-color: #00a6a6; color: white; }
 
-        /* -------------  Main content area ------------- */
-        .main-content { flex: 1; /*padding: 90px 60px;*/ padding: 5rem 6vw; background-color: white; display: flex; flex-direction: column; }
-        h1 { font-size: 32px; color: #2f3e46; margin: 20px 0 10px; }
-        .welcome { font-size: 18px; color: #444; margin-bottom: 20px; }
-        .welcome span { color: #007676; font-weight: 600; }
+      /* -------------  Main content area ------------- */
+      .main-content { flex: 1; /*padding: 90px 60px;*/ padding: 5rem 6vw; background-color: white; display: flex; flex-direction: column; }
+      h1 { font-size: 32px; color: #2f3e46; margin: 20px 0 10px; }
+      .welcome { font-size: 18px; color: #444; margin-bottom: 20px; }
+      .welcome span { color: #007676; font-weight: 600; }
 
-        /* -------------  Users table + controls ------------- */
-        .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; gap: 16px; flex-wrap: wrap; }
-        .search-input { flex: 1 1 250px; padding: 10px 14px; border: 1px solid #ccc; border-radius: 6px; font-size: 15px; }
-        .users-table { width: 100%; border-collapse: collapse; font-size: 15px; }
-        .users-table th, .users-table td { padding: 14px 18px; border-bottom: 1px solid #e7eaec; text-align: left; }
-        .users-table th { background: #e9f7f6; color: #007676; cursor: pointer; user-select: none; }
-        .users-table tr:nth-child(even) { background: #fafcfc; }
-        .users-table tr:hover { background: #f2fdfd; }
+      /* -------------  Users table + controls ------------- */
+      .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; gap: 16px; flex-wrap: wrap; }
+      .search-input { flex: 1 1 250px; padding: 10px 14px; border: 1px solid #ccc; border-radius: 6px; font-size: 15px; }
+      .users-table { width: 100%; border-collapse: collapse; font-size: 15px; }
+      .users-table th, .users-table td { padding: 14px 18px; border-bottom: 1px solid #e7eaec; text-align: left; }
+      .users-table th { background: #e9f7f6; color: #007676; cursor: pointer; user-select: none; }
+      .users-table tr:nth-child(even) { background: #fafcfc; }
+      .users-table tr:hover { background: #f2fdfd; }
 
-        /* -------------  Action buttons ------------- */
-        .btn { border: none; padding: 8px 12px; border-radius: 6px; font-size: 14px; cursor: pointer; transition: background 0.25s ease; }
-        .btn-promote   { background: #00a6a6; color: white; }
-        .btn-demote    { background: #ffc107; color: #333; }
-        .btn-delete    { background: #dc3545; color: white; }
-        .btn-add    { background: #00a6a6; color: white; }
-        .btn:hover     { filter: brightness(1.1); }
+      /* -------------  Action buttons ------------- */
+      .btn { border: none; padding: 8px 12px; border-radius: 6px; font-size: 14px; cursor: pointer; transition: background 0.25s ease; }
+      .btn-promote   { background: #00a6a6; color: white; }
+      .btn-demote    { background: #ffc107; color: #333; }
+      .btn-delete    { background: #dc3545; color: white; }
+      .btn-add    { background: #00a6a6; color: white; }
+      .btn:hover     { filter: brightness(1.1); }
 
-        .form-wrapper {
-          max-width: 600px;
-          /* margin: auto; */
-        }
+      .form-wrapper {
+        max-width: 600px;
+        /* margin: auto; */
+      }
 
-        .form-group {
-          display: flex;
-          align-items: center;
-          margin-bottom: 1rem;
-        }
+      .form-group {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1rem;
+      }
 
-        .form-group label {
-          width: 150px;
-          font-weight: 600;
-          margin-right: 1rem;
-        }
+      .form-group label {
+        width: 150px;
+        font-weight: 600;
+        margin-right: 1rem;
+      }
 
-        .form-group input,
-        .form-group select {
-          flex: 1;
-          padding: 0.5rem;
-          border: 1px solid #ccc;
-          border-radius: 6px;
-        }
+      .form-group input,
+      .form-group select {
+        flex: 1;
+        padding: 0.5rem;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+      }
 
-        .form-group.checkbox-group {
-          display: flex;
-          align-items: center;
-        }
+      .form-group.checkbox-group {
+        display: flex;
+        align-items: center;
+      }
 
-        .checkbox-group label {
-          width: auto;
-          font-weight: normal;
-        }
+      .checkbox-group label {
+        width: auto;
+        font-weight: normal;
+      }
 
-        input[type="text"],
-        input[type="number"],
-        select {
-          padding: 0.5rem;
-          border: 1px solid #ccc;
-          border-radius: 6px;
-        }
+      input[type="text"],
+      input[type="number"],
+      select {
+        padding: 0.5rem;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+      }
 
-        .checkbox-group {
-          display: flex;
-          align-items: center;
-        }
+      .checkbox-group {
+        display: flex;
+        align-items: center;
+      }
 
-        .form-actions {
-          display: flex;
-          justify-content: flex-start;
-          gap: 1rem;
-          margin-top: 1.5rem;
-        }
+      .form-actions {
+        display: flex;
+        justify-content: flex-start;
+        gap: 1rem;
+        margin-top: 1.5rem;
+      }
 
-        .image-preview {
-          margin-left: 150px;
-        }        
+      .image-preview {
+        margin-left: 150px;
+      }        
 
-        @media (max-width: 768px) {
-            .admin-container { flex-direction: column; }
-            .sidebar { width: 100%; flex-direction: row; overflow-x: auto; }
-            .menu-item { margin-right: 10px; margin-bottom: 0; }
-            .main-content { padding: 60px 25px; }
-        }
+      @media (max-width: 768px) {
+          .admin-container { flex-direction: column; }
+          .sidebar { width: 100%; flex-direction: row; overflow-x: auto; }
+          .menu-item { margin-right: 10px; margin-bottom: 0; }
+          .main-content { padding: 60px 25px; }
+      }

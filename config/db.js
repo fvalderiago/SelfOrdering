@@ -110,6 +110,7 @@ async function deleteMenuItem(id) {
   await pool.query('DELETE FROM foods WHERE foodID = ?', [id]);
 }
 
+
 module.exports = {
   findUserByUsername,
   getAllUsers,
