@@ -1,0 +1,30 @@
+<nav class="navbar">
+    <!--logo-->
+    <a href="/"><img src="/public/images/logo.png" class="logo" alt="" /></a>
+
+    <!--ul-->
+    <ul class="links-container">
+        <li class="link-items"><a href="/customer/menu" class="links">Menu</a></li>
+        <li class="link-items"><a href="/customer/view-account" class="links">My Account</a></li> 
+        <li class="link-items"><a href="/customer/m-orders" class="links">My Orders</a></li>
+    </ul>
+
+    <!--search box-->
+    <div class="nav-extras">
+        <ul class="links-container">
+            <li class="link-items"><a href="/logout" class="links">Logout</a></li>
+        </ul>
+
+        <!-- optional: dark overlay -->
+        <div id="overlay" style="display:none;"></div>
+
+        <!--cart btn-->
+        <a href="/customer/cart" class="cart"><i class="fa-solid fa-cart-shopping"></i><span id="cart-count" class="badge">0</span></a>
+
+        <div class="nav-toggler">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    </div>
+</nav>

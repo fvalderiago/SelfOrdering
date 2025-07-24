@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include('../partials/header1.ejs') %>
+  <link rel="stylesheet" href="/public/css/admin.css" />
+</head>
+<body>
+  <header>
+    <%- include('../partials/navbar-admin.ejs') %>
+  </header>
+  
+  <div class="admin-container">
+      <!-- Sidebar -->
+      <nav class="sidebar">
+        <h2>Admin Menu</h2>
+        <a href="/admin/view-users" class="menu-item">User Management</a>
+        <a href="/admin/view-menu" class="menu-item">Menu Items</a>
+        <a href="/admin/view-tables" class="menu-item active">Table Management</a>
+        <a href="/admin/view-dietary" class="menu-item">Dietary Preferences</a>
+        <a href="/admin/reports" class="menu-item">Reports</a>
+      </nav>
+
+      <!-- Main Content -->
+      <section class="main-content">
+        <main class="form-wrapper">
+          <h1>Add a Table</h1>
+
+          <form action="/admin/tables" method="POST" enctype="multipart/form-data">           
+            <div class="form-group">
+              <label>Name</label>
+                <input name="tableName" required>              
+            </div>
+
+            <div class="form-group">
+                <label>Image</label>
+                <input type="file" name="tableImage" accept="image/*">              
+            </div>
+
+            <button class="btn btn-primary">Create</button>
+            <a href="/admin/view-tables" class="btn btn-secondary">Cancel</a>
+          </form>
+        </main>
+      </section>
+    </div>
+</body>
+</html>

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include('../partials/header1.ejs') %>
+  <link rel="stylesheet" href="/public/css/admin.css" />
+</head>
+<body>
+  <header>
+    <%- include('../partials/navbar-admin.ejs') %>
+  </header>
+
+  <div class="admin-container">
+    <nav class="sidebar">
+      <h2>Admin Menu</h2>
+      <a href="/admin/view-users" class="menu-item">User Management</a>
+      <a href="/admin/view-menu" class="menu-item">Menu Items</a>
+      <a href="/admin/view-tables" class="menu-item">Table Management</a>
+      <a href="/admin/view-dietary" class="menu-item active">Dietary Preferences</a>
+      <a href="/admin/reports" class="menu-item">Reports</a>
+    </nav>
+
+    <section class="main-content">
+      <h1><%= dietaryOption.id ? 'Edit' : 'Add' %> Dietary Preference</h1>
+
+      <form action="<%= formAction %>" method="POST">
+        <input type="hidden" name="_method" value="<%= formMethod === 'PUT' ? 'PUT' : 'POST' %>">
+
+        <label for="name">Name</label><br>
+        <input type="text" id="name" name="name" required value="<%= dietaryOption.name || '' %>"><br><br>
+
+        <label for="description">Description</label><br>
+        <textarea id="description" name="description" rows="4"><%= dietaryOption.description || '' %></textarea><br><br>
+
+        <button type="submit" class="btn btn-add"><%= dietaryOption.id ? 'Update' : 'Create' %></button>
+        <a href="/admin/view-dietary" class="btn btn-cancel">Cancel</a>
+      </form>
+    </section>
+  </div>
+</body>
+</html>

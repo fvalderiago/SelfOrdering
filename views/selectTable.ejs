@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <%- include('partials/header1.ejs') %>
+</head>
+
+<body>
+    <header>
+      <!--navbar-->
+      <%- include('partials/navbar-loggedout.ejs') %>
+    </header>
+
+    <section id="order-section">
+      <h1>Select Your Table</h1>
+
+      <div class="restaurants-container">
+        <% tables.forEach(table => { %>
+            <div class="restaurant">
+                <div class="restaurant-thumbnail">
+                    <img src="/public<%= table.tableImage %>" class="restaurant-img" alt="Table <%= table.id %>">
+                </div>
+                <div class="restaurant-body">
+                    <form action="/order/set-table/<%= table.id %>" method="POST">
+                      <button class="btn btn-add">Select <%= table.tableName %></button>
+                    </form>
+                </div>
+            </div>
+          <% }) %>
+        </div>
+    </section>
+
+    <footer>
+      <%- include('partials/footer1.ejs') %>
+    </footer>
+</body>
+</html>

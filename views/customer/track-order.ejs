@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <%- include('../partials/header1.ejs') %>
+    <link rel="stylesheet" href="/public/css/customer.css" />
+    <!-- <style>
+        .cart-container {
+            max-width: 1200px;
+            margin: auto;
+            padding: 20px;
+        }
+
+        .cart-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .cart-table th,
+        .cart-table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: center;
+        }
+
+        .cart-table th {
+            background: #f8f8f8;
+        }
+    </style> -->
+</head>
+
+<body>
+    <header>
+        <%- include('../partials/navbar-guest.ejs') %>
+    </header>
+
+    <section id="track-order-section"> 
+        <div class="cart-container">
+            <h1>Your Table Orders (Table ID: <%= tableId %>)</h1>
+            <table class="cart-table" id="customer-orders">
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Time</th>
+                        <th>Status</th>
+                        <th>Items</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>        
+    </section>
+
+    <footer>
+        <%- include('../partials/footer1.ejs') %>
+    </footer>
+
+    <script>
+        function fetchCustomerOrders() {
+            fetch('/api/customer/orders')
+                .then(res => res.json())
+                .then(data => {
+                    const grouped = {};
+
+                    data.forEach(item => {
+                        if (!grouped[item.orderID]) {
+                            grouped[item.orderID] = { ...item, items: [] };
+                        }
+                        grouped[item.orderID].items.push(`${item.foodName} × ${item.quantity}`);
+                    });
+
+                    const tbody = document.querySelector('#customer-orders tbody');
+                    tbody.innerHTML = '';
+
+                    Object.values(grouped).forEach(order => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${order.orderID}</td>
+                            <td>${new Date(order.orderTime).toLocaleString()}</td>
+                            <td>${order.status}</td>
+                            <td>${order.items.join('<br>')}</td>
+                        `;
+                        tbody.appendChild(row);
+                    });
+                });
+        }
+
+        setInterval(fetchCustomerOrders, 5000);
+        document.addEventListener('DOMContentLoaded', fetchCustomerOrders);
+    </script>
+
+</body>
+
+</html>

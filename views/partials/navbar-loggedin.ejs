@@ -1,0 +1,46 @@
+<nav class="navbar">
+    <!--logo-->
+    <a href="/"><img src="public/images/logo.png" class="logo" alt="" /></a>
+
+    <!--ul-->
+    <ul class="links-container">
+        <!-- <li class="link-items <%= currentRoute === 'menu' ? 'active' : '' %>"><a href="/menu" class="links">Menu</a></li> -->
+        <li class="link-items <%= currentRoute === 'order' ? 'active' : '' %>"><a href="/order" class="links">Order Now</a></li>
+        <!--<li class="link-items <%= currentRoute === 'restaurants' ? 'active' : '' %>"><a href="/restaurants" class="links">Restaurants</a></li>-->
+        <li class="link-items <%= currentRoute === 'track-order' ? 'active' : '' %>"><a href="/track-order" class="links">Track Order</a></li>
+        <li class="link-items"><a href="/logout" class="links">Logout</a></li>
+    </ul>
+
+    <!--search box-->
+    <div class="nav-extras">
+        <div class="search">
+            <input type="text" class="search-box" placeholder="Search Restaurants, Cuisine..." />
+            <button class="search-btn"><i class="fa-solid fa-magnifying-glass"></i></button>
+        </div>
+
+        <!-- user profile -->
+        <div class="profile-container">
+            <a href="#" class="profile" id="profile-toggle"><i class="fa fa-user" aria-hidden="true"></i></a>
+
+            <!-- Sliding Profile Panel -->
+            <div class="profile-panel" id="profile-panel">
+                <button class="close-btn" id="close-profile">&times;</button>
+                <h3>User Profile</h3>
+                <ul class="profile-menu">
+                    <li><a href="/account"><i class="fa fa-cog"></i> Account Settings</a></li>
+                    <li><a href="/orders"><i class="fa fa-receipt"></i> My Orders</a></li>
+                    <li><a href="/logout"><i class="fa fa-sign-out-alt"></i> Logout</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <!--cart btn-->
+        <a href="#" class="cart"><i class="fa-solid fa-cart-shopping"></i></a>
+
+        <div class="nav-toggler">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    </div>
+</nav>

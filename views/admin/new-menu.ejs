@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include('../partials/header1.ejs') %>
+  <link rel="stylesheet" href="/public/css/admin.css" />
+</head>
+<body>
+  <header>
+    <%- include('../partials/navbar-admin.ejs') %>
+  </header>
+  
+  <div class="admin-container">
+      <!-- Sidebar -->
+      <nav class="sidebar">
+        <h2>Admin Menu</h2>
+        <a href="/admin/view-users" class="menu-item">User Management</a>
+        <a href="/admin/view-menu" class="menu-item active">Menu Items</a>
+        <a href="/admin/view-tables" class="menu-item">Table Management</a>
+        <a href="/admin/view-dietary" class="menu-item">Dietary Preferences</a>
+        <a href="/admin/reports" class="menu-item">Reports</a>
+      </nav>
+
+      <!-- Main Content -->
+      <section class="main-content">
+        <main class="form-wrapper">
+          <h1>Add Menu Item</h1>
+
+          <form action="/admin/menus" method="POST" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="foodType">Type</label>
+                <select name="foodTypeID" required>
+                  <% foodTypes.forEach(ft => { %>
+                    <option value="<%= ft.foodTypeID %>"><%= ft.foodType %></option>
+                  <% }) %>
+                </select>              
+            </div>
+            
+            <div class="form-group">
+              <label>Name</label>
+                <input name="foodName" required>              
+            </div>
+
+            <div class="form-group">
+                <label>Price ($)</label>
+                <input type="number" step="0.01" name="price" required>              
+            </div>
+
+            <div class="form-group">
+                <label>Description</label>
+                <input name="description" required>              
+            </div>
+
+          <div class="form-group">
+              <label>Discount (%)</label>
+              <input name="discount" required>            
+          </div>
+            
+            <div class="form-group checkbox-group">
+                <label class="checkbox">
+                  Featured item?
+                  <input type="checkbox" name="isFeatured" value="1"> 
+                </label>
+            </div>
+
+            <div class="form-group">
+                <label>Image</label>
+                <input type="file" name="foodImage" accept="image/*">              
+            </div>
+
+            <button class="btn btn-primary">Create</button>
+            <a href="/admin/view-menu" class="btn btn-secondary">Cancel</a>
+          </form>
+        </main>
+      </section>
+    </div>
+</body>
+</html>

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('../partials/header1.ejs') %>
+    <link rel="stylesheet" href="/public/css/admin.css" />
+</head>
+<body>
+    <header>
+        <%- include('../partials/navbar-admin.ejs') %>
+    </header>
+
+    <div class="admin-container">
+        <!-- Sidebar -->
+        <nav class="sidebar">
+            <h2>Admin Menu</h2>
+            <a href="/admin/view-users" class="menu-item">User Management</a>
+            <a href="/admin/view-menu" class="menu-item">Menu Items</a>
+            <a href="/admin/view-tables" class="menu-item active">Table Management</a>
+            <a href="/admin/view-dietary" class="menu-item">Dietary Preferences</a>
+            <a href="/admin/reports" class="menu-item">Reports</a>
+        </nav>
+
+        <!-- Main content -->
+        <section class="main-content">
+            <h1>Table Management</h1>            
+            <!-- Toolbar -->
+            <div class="toolbar">
+                <input id="userSearch" class="search-input" type="search"
+                       placeholder="Search by table name">
+            </div>
+
+            <div class="mb-3">
+                <a href="/admin/tables/new" class="btn btn-add"><i class="fa-solid fa-plus"></i> Add Table</a>
+            </div>
+            <!-- Tables table -->
+            <table class="users-table" id="tablesTable">
+                <thead>
+                    <tr>
+                        <th data-col="tableImage">Image</th>
+                        <th data-col="id">ID &#x25B2;</th>
+                        <th data-col="tableName">Name</th>
+                        <th data-col="isOccupied">Occupied?</th>
+                        <th style="width: 250px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% tables.forEach(item => { %>
+                        <tr>
+                            <td>
+                                <img src="/public/<%= item.tableImage %>" style="width:100px;" alt="<%= item.tableName %>" />
+                                <script>
+                                    document.getElementById('pictureInput')?.addEventListener('change', function(event) {
+                                        const file = event.target.files[0];
+                                        if (file) {
+                                        const reader = new FileReader();
+                                        reader.onload = function(e) {
+                                            document.getElementById('picturePreview').src = e.target.result;
+                                        };
+                                        reader.readAsDataURL(file);
+                                        }
+                                    });
+                                </script>
+                            </td>
+                            <td><%= item.id %></td>
+                            <td><%= item.tableName %></td>
+                            <td>
+                                <% if (item.isOccupied == null || item.isOccupied == 0) { %>
+                                    No
+                                 <% } else { %>
+                                  Yes
+                                <% } %>
+                            </td>
+                            <td>
+                                <a href="/admin/tables/<%= item.id %>/edit" class="btn btn-edit">Edit</a>
+
+                                <form action="/admin/tables/<%= item.id %>?_method=DELETE"
+                                        method="POST"
+                                        style="display:inline"
+                                        onsubmit="return confirm('Delete <%= item.tableName %>?');">
+                                    <button class="btn btn-delete">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                    <% }) %>
+
+                </tbody>
+            </table>
+        </section>
+    </div>
+
+    <!-- Client‑side search + simple column sorting -->
+    <script>
+        (function () {
+            const rows   = [...document.querySelectorAll('#tablesTable tbody tr')];
+            const search = document.getElementById('userSearch');
+
+            /* ---- live search ---- */
+            search.addEventListener('input', e => {
+                const q = e.target.value.toLowerCase();
+                rows.forEach(row => {
+                    row.style.display = row.innerText.toLowerCase().includes(q) ? '' : 'none';
+                });
+            });
+
+            /* ---- basic sort ---- */
+            let asc = true;
+            document.querySelectorAll('#tablesTable thead th[data-col]').forEach(th => {
+                th.addEventListener('click', () => {
+                    const col = th.dataset.col;
+                    asc = !asc;
+                    document.querySelectorAll('#tablesTable thead th[data-col]').forEach(h => {
+                        h.innerHTML = h.innerHTML.replace(' ▲', '').replace(' ▼', '');
+                    });
+                    th.innerHTML = th.textContent + (asc ? ' ▲' : ' ▼');
+
+                    rows.sort((a, b) => {
+                        const ta = a.querySelector('td:nth-child(' + (th.cellIndex + 1) + ')').innerText;
+                        const tb = b.querySelector('td:nth-child(' + (th.cellIndex + 1) + ')').innerText;
+                        return asc ? ta.localeCompare(tb, undefined, {numeric: true}) :
+                                     tb.localeCompare(ta, undefined, {numeric: true});
+                    });
+                    const tbody = th.closest('table').querySelector('tbody');
+                    rows.forEach(r => tbody.appendChild(r));
+                });
+            });
+        })();
+    </script>
+</body>
+</html>

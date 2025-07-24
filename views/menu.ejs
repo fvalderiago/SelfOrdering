@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <%- include('partials/header1.ejs') %>
+    <link rel="stylesheet" href="/public/css/customer.css" />
+</head>
+
+<body>
+    <header>
+        <!--navbar-->
+        <%- include('partials/navbar-guest.ejs') %> <!--not logged in customer-->
+    </header>
+
+    <!--restaurants section-->
+    <section id="restaurants-section">
+
+        <div class="leaf-layer right" data-aos="zoom-in-up"><img src="public/images/leafs-right.png" alt="leaf right"></div>
+
+            <h1>Menu for <%= tableName %></h1>
+            <div class="restaurants-container">
+                <% for (let index = 0; index < menuItems.length; index++) {
+                    const item = menuItems[index]; %>
+                    <div class="restaurant">
+                    <% if (item.discount != null && item.discount != 0) { %>
+                        <p class="discount"><%= item.discount %>% Off</p>
+                    <% } %>
+                    <div class="restaurant-thumbnail">
+                        <img src="/public/<%= item.foodImage %>" class="restaurant-img" alt="<%= item.foodName %>" />
+                    </div>
+                    <div class="restaurant-body">
+                        <h3 class="restaurant-name"><%= item.foodType %></h3>
+                        <p class="menu"><%= item.foodName %></p>
+                        <p class="place"><%= item.description %></p>
+                        <p class="discount-text">
+                        <% if (item.discount != null && item.discount != 0) { %>
+                            <%= item.discount %>% on your first reservation
+                        <% } %>
+                        </p>
+                        <span class="rating">$<%= item.price %></span>
+
+                        <!-- Quantity controls -->
+                        <div class="quantity-controls" data-idx="<%= index %>">
+                            <button type="button" class="qty-btn minus">‑</button>
+                            <span class="qty-display" id="qty-<%= index %>">1</span>
+                            <button type="button" class="qty-btn plus">+</button>
+                        </div>
+
+                        <fieldset class="dietary-fieldset">
+                            <legend>Dietary Preferences</legend>
+                            <% if (dietaryOptions && dietaryOptions.length > 0) { %>
+                                 <div class="dietary-options" id="dietary-<%= index %>">
+                                    <% dietaryOptions.forEach(option => { %>
+                                        <label class="dietary-label">
+                                            <input type="checkbox" name="dietary[]" value="<%= option.id %>">
+                                            <%= option.name %>
+                                        </label>
+                                    <% }) %>
+                                </div>
+
+                            <% } else { %>
+                                <p>No dietary options found.</p>
+                            <% } %>
+                        </fieldset>
+
+
+
+                        <!-- Add to cart -->
+                        <!-- <button class="add-cart-btn"
+                                onclick='addToCart(<%- JSON.stringify(item) %>, <%= index %>)'>
+                        
+                        </button> -->
+                        <!-- <button class="add-cart-btn"
+                            onclick='addToCart({ id: "<%= item.foodID %>", name: "<%= item.foodName %>", price: <%= item.price %> }, <%= index %>)'>
+                            Add to Cart
+                        </button> -->
+
+                        <button class="add-cart-btn"
+                            onclick='addToCart({ id: "<%= item.foodID %>", name: "<%= item.foodName %>", price: <%= item.price %> }, <%= index %>, "dietary-<%= index %>")'>
+                            Add to Cart
+                        </button>
+
+
+                    </div>
+                    </div>
+                <% } %>
+                </div>
+
+        <div class="leaf-layer left"><img src="public/images/leafs.png" alt=""></div>
+
+    </section>
+
+    
+
+    <footer>
+        <%- include('partials/footer1.ejs') %>
+    </footer>
+
+    <!-- Client‑side search + simple column sorting -->
+    <script>
+        (function () {
+            const rows   = [...document.querySelectorAll('#menuTable tbody tr')];
+            const search = document.getElementById('userSearch');
+
+            /* ---- live search ---- */
+            if (search) {
+                search.addEventListener('input', e => {
+                    const q = e.target.value.toLowerCase();
+                    rows.forEach(row => {
+                        row.style.display = row.innerText.toLowerCase().includes(q) ? '' : 'none';
+                    });
+                });
+            }
+
+            /* ---- basic sort ---- */
+            let asc = true;
+            document.querySelectorAll('#menuTable thead th[data-col]').forEach(th => {
+                th.addEventListener('click', () => {
+                    const col = th.dataset.col;
+                    asc = !asc;
+                    document.querySelectorAll('#menuTable thead th[data-col]').forEach(h => {
+                        h.innerHTML = h.innerHTML.replace(' ▲', '').replace(' ▼', '');
+                    });
+                    th.innerHTML = th.textContent + (asc ? ' ▲' : ' ▼');
+
+                    rows.sort((a, b) => {
+                        const ta = a.querySelector('td:nth-child(' + (th.cellIndex + 1) + ')').innerText;
+                        const tb = b.querySelector('td:nth-child(' + (th.cellIndex + 1) + ')').innerText;
+                        return asc ? ta.localeCompare(tb, undefined, {numeric: true}) :
+                                     tb.localeCompare(ta, undefined, {numeric: true});
+                    });
+                    const tbody = th.closest('table').querySelector('tbody');
+                    rows.forEach(r => tbody.appendChild(r));
+                });
+            });
+        })();
+
+
+
+        /* ─── util functions ───────────────────── */
+        function getCart()        { return JSON.parse(localStorage.getItem('cart') || '[]'); }
+        function setCart(newCart) { localStorage.setItem('cart', JSON.stringify(newCart)); }
+        function cartCount()      { return getCart().reduce((s,i)=>s+i.qty,0); }
+        function updateCartBadge(){ document.getElementById('cart-count').innerText = cartCount(); }
+
+        /* ─── quantities store ─────────────────── */
+        const quantities = {};
+
+        /* ─── main logic once DOM is ready ─────── */
+        document.addEventListener('DOMContentLoaded', () => {
+        // Initialize quantities
+        document.querySelectorAll('.quantity-controls').forEach(ctrl => {
+            const idx = Number(ctrl.dataset.idx);
+            quantities[idx] = 1;
+            document.getElementById(`qty-${idx}`).innerText = 1;
+        });
+
+        // Update badge
+        updateCartBadge();
+
+        // Plus / Minus handler
+        document.addEventListener('click', e => {
+            if (!e.target.classList.contains('qty-btn')) return;
+
+            const ctrl = e.target.closest('.quantity-controls');
+            const idx  = Number(ctrl.dataset.idx);
+
+            if (e.target.classList.contains('plus'))  quantities[idx]++;
+            if (e.target.classList.contains('minus')) quantities[idx] = Math.max(1, quantities[idx] - 1);
+
+            document.getElementById(`qty-${idx}`).innerText = quantities[idx];
+        });
+        });
+
+        /* ─── global addToCart (HTML uses onclick='...') ───── */
+        // function addToCart(item, idx) {
+        //     const qty = quantities[idx] || 1;
+
+        //     let cart = getCart();
+        //     const i = cart.findIndex(c => c.foodId === (item.foodId || item.id));
+
+        //     if (i > -1) cart[i].qty += qty;
+        //     else cart.push({
+        //         foodId: item.foodId || item.id,
+        //         name: item.foodName,
+        //         price: item.price,
+        //         qty
+        //     });
+
+        //     setCart(cart);
+        //     updateCartBadge();
+        //     alert(`${qty} × ${item.foodName} added to cart`);
+
+        //     quantities[idx] = 1;
+        //     document.getElementById(`qty-${idx}`).innerText = 1;
+        // }
+
+        function addToCart(item, idx, dietaryContainerId) {
+            const qty = quantities[idx] || 1;
+            let cart = getCart();
+
+            // Collect dietary selections
+            const dietarySelections = [];
+            const container = document.getElementById(dietaryContainerId);
+            if (container) {
+                const checkboxes = container.querySelectorAll('input[type="checkbox"]:checked');
+                checkboxes.forEach(cb => dietarySelections.push(Number(cb.value)));
+            }
+
+            console.log("Adding to cart:", item);
+
+            const i = cart.findIndex(c => c.id === item.id);
+
+            if (i > -1) {
+                cart[i].qty += qty;
+                
+                if (dietarySelections.length > 0) {
+                    cart[i].dietary = dietarySelections;
+                }
+            } else {
+                cart.push({
+                id: item.id,
+                name: item.name,
+                price: item.price,
+                qty,
+                dietary: dietarySelections
+                });
+            }
+
+            setCart(cart);
+            updateCartBadge();
+            // alert(`${qty} × ${item.name} added to cart`);
+            alert(`${qty} × ${item.name} added to cart\nDietary: ${dietarySelections.join(', ') || 'none'}`);
+
+            quantities[idx] = 1;
+            document.getElementById(`qty-${idx}`).innerText = 1;
+
+            // Optionally uncheck dietary checkboxes
+            if (container) {
+                container.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+            }
+        }
+
+    </script>
+
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+
+</body>
+
+</html>

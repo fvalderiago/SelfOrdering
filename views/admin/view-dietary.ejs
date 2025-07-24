@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('../partials/header1.ejs') %>
+    <link rel="stylesheet" href="/public/css/admin.css" />
+</head>
+<body>
+    <header>
+        <%- include('../partials/navbar-admin.ejs') %>
+    </header>
+    
+    <div class="admin-container">
+        <!-- Sidebar -->
+        <nav class="sidebar">
+            <h2>Admin Menu</h2>
+            <a href="/admin/view-users" class="menu-item">User Management</a>
+            <a href="/admin/view-menu" class="menu-item">Menu Items</a>
+            <a href="/admin/view-tables" class="menu-item">Table Management</a>
+            <a href="/admin/view-dietary" class="menu-item active">Dietary Preferences</a>
+            <a href="/admin/reports" class="menu-item">Reports</a>
+        </nav>
+
+        <!-- Main content -->
+        <section class="main-content">
+            <h1>Dietary Preferences</h1>
+
+            <div class="mb-3">
+                <a href="/admin/dietary/new" class="btn btn-add"><i class="fa-solid fa-plus"></i> Add Dietary Preference</a>
+            </div>
+
+            <div class="toolbar">
+                <input id="dietarySearch" class="search-input" type="search" placeholder="Search dietary preferences…">
+            </div>
+
+            <table class="users-table" id="dietaryTable">
+                <thead>
+                    <tr>
+                        <th data-col="id">ID &#x25B2;</th>
+                        <th data-col="name">Name</th>
+                        <th data-col="description">Description</th>
+                        <th style="width: 180px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% dietaryOptions.forEach(option => { %>
+                        <tr>
+                            <td><%= option.id %></td>
+                            <td><%= option.name %></td>
+                            <td><%= option.description %></td>
+                            <td>
+                                <a href="/admin/dietary/<%= option.id %>/edit" class="btn btn-edit">Edit</a>
+                                <form action="/admin/dietary/<%= option.id %>?_method=DELETE" method="POST" style="display:inline" onsubmit="return confirm('Delete <%= option.name %>?');">
+                                    <button class="btn btn-delete">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                    <% }) %>
+                </tbody>
+            </table>
+        </section>
+    </div>
+
+    <script>
+        (function () {
+            const rows = [...document.querySelectorAll('#dietaryTable tbody tr')];
+            const search = document.getElementById('dietarySearch');
+
+            /* live search */
+            search.addEventListener('input', e => {
+                const q = e.target.value.toLowerCase();
+                rows.forEach(row => {
+                    row.style.display = row.innerText.toLowerCase().includes(q) ? '' : 'none';
+                });
+            });
+
+            /* basic sort */
+            let asc = true;
+            document.querySelectorAll('#dietaryTable thead th[data-col]').forEach(th => {
+                th.addEventListener('click', () => {
+                    const col = th.dataset.col;
+                    asc = !asc;
+                    document.querySelectorAll('#dietaryTable thead th[data-col]').forEach(h => {
+                        h.innerHTML = h.innerHTML.replace(' ▲', '').replace(' ▼', '');
+                    });
+                    th.innerHTML = th.textContent + (asc ? ' ▲' : ' ▼');
+
+                    rows.sort((a, b) => {
+                        const ta = a.querySelector('td:nth-child(' + (th.cellIndex + 1) + ')').innerText;
+                        const tb = b.querySelector('td:nth-child(' + (th.cellIndex + 1) + ')').innerText;
+                        return asc ? ta.localeCompare(tb, undefined, {numeric: true}) :
+                                     tb.localeCompare(ta, undefined, {numeric: true});
+                    });
+                    const tbody = th.closest('table').querySelector('tbody');
+                    rows.forEach(r => tbody.appendChild(r));
+                });
+            });
+        })();
+    </script>
+</body>
+</html>

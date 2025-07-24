@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include('../partials/header1.ejs') %>
+  <link rel="stylesheet" href="/public/css/admin.css" />
+  <title>Edit Menu Item</title>
+</head>
+<body>
+  <header>
+    <%- include('../partials/navbar-admin.ejs') %>
+  </header>
+  
+  <div class="admin-container">
+    <!-- Sidebar -->
+    <nav class="sidebar">
+      <h2>Admin Menu</h2>
+      <a href="/admin/view-users" class="menu-item">User Management</a>
+      <a href="/admin/view-menu" class="menu-item">Menu Items</a>
+      <a href="/admin/view-tables" class="menu-item active">Table Management</a>
+      <a href="/admin/view-dietary" class="menu-item">Dietary Preferences</a>
+      <a href="/admin/reports" class="menu-item">Reports</a>
+    </nav>
+
+    <!-- Main Content -->
+    <section class="main-content">
+      <main class="form-wrapper">
+        <h1>Edit Table</h1>
+
+        <form 
+          action="/admin/tables/<%= table ? table.id + '?_method=PUT' : '' %>" 
+          method="POST" 
+          enctype="multipart/form-data"
+        >
+          <!-- Name -->
+          <div class="form-group">
+            <label for="tableName">Name</label>
+            <input 
+              type="text" 
+              id="tableName" 
+              name="tableName" 
+              value="<%= table.tableName %>" 
+              required
+            />
+          </div>
+
+          <!-- Image Upload and Preview -->
+          <div class="form-group">
+            <label for="tableImage">Image</label>
+            <input 
+              type="file" 
+              name="tableImage" 
+              id="tableImage" 
+              accept="image/*"
+            />
+            <input 
+              type="hidden" 
+              name="oldPicture" 
+              value="<%= table.tableImage %>"
+            />
+            <% if (table.tableImage) { %>
+              <div class="image-preview">
+                <img 
+                  src="/public/<%= table.tableImage %>" 
+                  alt="Current Image" 
+                  width="100"
+                />
+              </div>
+            <% } %>
+          </div>
+
+          <!-- Occupied Checkbox -->
+          <div class="form-group checkbox-group">
+              <label for="isOccupied" class="checkbox">
+                  Occupied ?
+                  <input type="checkbox" id="isOccupied" name="isOccupied" value="1" <%= table.isOccupied ? 'checked' : '' %>> 
+              </label>            
+          </div>
+
+          <!-- Form Actions -->
+          <div class="form-actions">
+            <button class="btn btn-primary" type="submit">Save</button>
+            <a href="/admin/view-menu" class="btn btn-secondary">Cancel</a>
+          </div>
+        </form>
+      </main>
+    </section>
+  </div>
+</body>
+</html>

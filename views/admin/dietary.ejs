@@ -1,0 +1,43 @@
+<h1>Manage Dietary Preferences</h1>
+
+<form id="add-pref-form">
+  <input type="text" id="pref-name" placeholder="Add new preference" required />
+  <button type="submit">Add</button>
+</form>
+
+<ul id="pref-list"></ul>
+
+<script>
+  async function loadPrefs() {
+    const res = await fetch('/admin/dietary');
+    const prefs = await res.json();
+    const list = document.getElementById('pref-list');
+    list.innerHTML = '';
+    prefs.forEach(p => {
+      list.innerHTML += `
+        <li>
+          ${p.name}
+          <button onclick="deletePref(${p.id})">Delete</button>
+        </li>`;
+    });
+  }
+
+  async function deletePref(id) {
+    await fetch('/admin/dietary/' + id, { method: 'DELETE' });
+    loadPrefs();
+  }
+
+  document.getElementById('add-pref-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const name = document.getElementById('pref-name').value;
+    await fetch('/admin/dietary', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name })
+    });
+    document.getElementById('pref-name').value = '';
+    loadPrefs();
+  });
+
+  loadPrefs();
+</script>

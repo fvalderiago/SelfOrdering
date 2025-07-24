@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include('../partials/header1.ejs') %>
+  <link rel="stylesheet" href="/public/css/customer.css" />
+</head>
+<body>
+  <header>
+    <%- include('../partials/navbar-guest.ejs') %>
+  </header>
+
+  <div class="cart-container">
+    <h1>Your Cart</h1>
+    <table class="cart-table">
+      <thead>
+        <tr>
+          <th>Food</th>
+          <th>Dietary Preference</th>
+          <th>Price</th>
+          <th>Quantity</th>
+          <th>Total</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="cart-body">
+        <!-- filled by JavaScript -->
+      </tbody>
+    </table>
+    <h2 id="cart-total">Total: $0.00</h2>
+    <!-- <textarea id="special-instructions" placeholder="Special instructions (e.g. no peanuts)" rows="3" style="width: 100%;"></textarea> -->
+     <div class="special-instructions-container">
+      <label for="special-instructions" class="instructions-label">
+        Special Instructions
+      </label>
+      <textarea 
+        id="special-instructions" 
+        name="specialInstructions"
+        placeholder="e.g. No peanuts, extra spicy, sauce on the side..."
+        rows="4"
+        class="instructions-textarea"
+        aria-label="Special instructions for your order"
+      ></textarea>
+    </div>
+
+   <button onclick="checkout()" class="checkout-btn">Checkout</button>
+  </div>
+
+  <script src="/public/js/cart.js"></script>
+</body>
+</html>

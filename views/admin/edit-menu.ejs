@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include('../partials/header1.ejs') %>
+  <link rel="stylesheet" href="/public/css/admin.css" />
+  <title>Edit Menu Item</title>
+</head>
+<body>
+  <header>
+    <%- include('../partials/navbar-admin.ejs') %>
+  </header>
+  
+  <div class="admin-container">
+    <!-- Sidebar -->
+    <nav class="sidebar">
+      <h2>Admin Menu</h2>
+      <a href="/admin/view-users" class="menu-item">User Management</a>
+      <a href="/admin/view-menu" class="menu-item active">Menu Items</a>
+      <a href="/admin/view-tables" class="menu-item">Table Management</a>
+      <a href="/admin/view-dietary" class="menu-item">Dietary Preferences</a>
+      <a href="/admin/reports" class="menu-item">Reports</a>
+    </nav>
+
+    <!-- Main Content -->
+    <section class="main-content">
+      <main class="form-wrapper">
+        <h1>Edit Menu Item</h1>
+
+        <form 
+          action="/admin/menus/<%= menuItem ? menuItem.foodID + '?_method=PUT' : '' %>" 
+          method="POST" 
+          enctype="multipart/form-data"
+        >
+          <!-- Food Type -->
+          <div class="form-group">
+            <label for="foodType">Type</label>
+            <select name="foodTypeID" id="foodType" required>
+              <% foodTypes.forEach(ft => { %>
+                <option 
+                  value="<%= ft.foodTypeID %>" 
+                  <%= ft.foodTypeID === menuItem.foodTypeID ? 'selected' : '' %>
+                >
+                  <%= ft.foodType %>
+                </option>
+              <% }) %>
+            </select>
+          </div>
+
+          <!-- Name -->
+          <div class="form-group">
+            <label for="foodName">Name</label>
+            <input 
+              type="text" 
+              id="foodName" 
+              name="foodName" 
+              value="<%= menuItem.foodName %>" 
+              required
+            />
+          </div>
+
+          <!-- Price -->
+          <div class="form-group">
+            <label for="price">Price ($)</label>
+            <input 
+              type="number" 
+              step="0.01" 
+              id="price" 
+              name="price" 
+              value="<%= menuItem.price %>" 
+              required
+            />
+          </div>
+
+          <!-- Description -->
+          <div class="form-group">
+            <label for="description">Description</label>
+            <input 
+              type="text" 
+              id="description" 
+              name="description" 
+              value="<%= menuItem.description %>" 
+              required
+            />
+          </div>
+
+          <!-- Discount -->
+          <div class="form-group">
+            <label for="discount">Discount (%)</label>
+            <input 
+              type="number" 
+              id="discount" 
+              name="discount" 
+              value="<%= menuItem.discount %>" 
+              required
+            />
+          </div>
+
+          <!-- Featured Checkbox -->
+          <div class="form-group checkbox-group">
+              <label for="isFeatured" class="checkbox">
+                  Featured item?
+                  <input type="checkbox" id="isFeatured" name="isFeatured" value="1" <%= menuItem.isFeatured ? 'checked' : '' %>> 
+              </label>            
+          </div>
+
+          <!-- Image Upload and Preview -->
+          <div class="form-group">
+            <label for="foodImage">Image</label>
+            <input 
+              type="file" 
+              name="foodImage" 
+              id="foodImage" 
+              accept="image/*"
+            />
+            <input 
+              type="hidden" 
+              name="oldPicture" 
+              value="<%= menuItem.foodImage %>"
+            />
+            <% if (menuItem.foodImage) { %>
+              <div class="image-preview">
+                <img 
+                  src="/public/<%= menuItem.foodImage %>" 
+                  alt="Current Image" 
+                  width="100"
+                />
+              </div>
+            <% } %>
+          </div>
+
+          <!-- Form Actions -->
+          <div class="form-actions">
+            <button class="btn btn-primary" type="submit">Save</button>
+            <a href="/admin/view-menu" class="btn btn-secondary">Cancel</a>
+          </div>
+        </form>
+      </main>
+    </section>
+  </div>
+</body>
+</html>

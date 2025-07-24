@@ -1,0 +1,15 @@
+<%- include('partials/header') %>
+
+<h2>📋 All Table QR Codes (1–20)</h2>
+
+<div style="display: flex; flex-wrap: wrap; gap: 20px;">
+<% qrList.forEach(qr => { %>
+    <div style="border: 1px solid #ccc; padding: 10px; width: 180px; text-align: center;">
+        <h4>Table <%= qr.table %></h4>
+        <img src="<%= qr.qr %>" alt="QR Code for Table <%= qr.table %>" style="width: 150px;">
+        <p style="font-size: 12px;"><%= qr.url %></p>
+    </div>
+<% }); %>
+</div>
+
+<%- include('partials/footer') %>
