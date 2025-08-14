@@ -15,69 +15,47 @@
             <h2>Admin Menu</h2>
             <a href="/admin/view-users" class="menu-item">User Management</a>
             <a href="/admin/view-menu" class="menu-item">Menu Items</a>
-            <a href="/admin/view-tables" class="menu-item active">Table Management</a>
+            <a href="/admin/view-tables" class="menu-item">Table Management</a>
             <a href="/admin/view-dietary" class="menu-item">Dietary Preferences</a>
-            <a href="/admin/view-faqs" class="menu-item">FAQs</a>
+            <a href="/admin/view-faqs" class="menu-item active">FAQs</a>
             <a href="/admin/admin-report" class="menu-item">Reports</a>
         </nav>
 
         <!-- Main content -->
         <section class="main-content">
-            <h1>Table Management</h1>            
+            <h1>Frequently Asked Questions</h1>            
             <!-- Toolbar -->
             <div class="toolbar">
                 <input id="userSearch" class="search-input" type="search"
-                       placeholder="Search by table name">
+                       placeholder="Search by FAQ">
             </div>
 
             <div class="mb-3">
-                <a href="/admin/tables/new" class="btn btn-add"><i class="fa-solid fa-plus"></i> Add Table</a>
+                <a href="/admin/faqs/new" class="btn btn-add"><i class="fa-solid fa-plus"></i> Add FAQ</a>
             </div>
-            <!-- Tables table -->
-            <table class="users-table" id="tablesTable">
+            <!-- FAQs table -->
+            <table class="users-table" id="faqsTable">
                 <thead>
                     <tr>
-                        <th data-col="tableImage">Image</th>
                         <th data-col="id">ID &#x25B2;</th>
-                        <th data-col="tableName">Name</th>
-                        <th data-col="isOccupied">Occupied?</th>
+                        <th data-col="faqTitle">Title</th>
+                        <th data-col="faqDetail">Detail</th>
                         <th style="width: 250px;">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <% tables.forEach(item => { %>
+                    <% faqs.forEach(faq => { %>
                         <tr>
+                            <td><%= faq.id %></td>
+                            <td><%= faq.faqTitle %></td>
+                            <td><%= faq.faqDetail %></td>
                             <td>
-                                <img src="/public/<%= item.tableImage %>" style="width:100px;" alt="<%= item.tableName %>" />
-                                <script>
-                                    document.getElementById('pictureInput')?.addEventListener('change', function(event) {
-                                        const file = event.target.files[0];
-                                        if (file) {
-                                        const reader = new FileReader();
-                                        reader.onload = function(e) {
-                                            document.getElementById('picturePreview').src = e.target.result;
-                                        };
-                                        reader.readAsDataURL(file);
-                                        }
-                                    });
-                                </script>
-                            </td>
-                            <td><%= item.id %></td>
-                            <td><%= item.tableName %></td>
-                            <td>
-                                <% if (item.isOccupied == null || item.isOccupied == 0) { %>
-                                    No
-                                 <% } else { %>
-                                  Yes
-                                <% } %>
-                            </td>
-                            <td>
-                                <a href="/admin/tables/<%= item.id %>/edit" class="btn btn-edit">Edit</a>
+                                <a href="/admin/faqs/<%= faq.id %>/edit" class="btn btn-edit">Edit</a>
 
-                                <form action="/admin/tables/<%= item.id %>?_method=DELETE"
+                                <form action="/admin/faqs/<%= faq.id %>?_method=DELETE"
                                         method="POST"
                                         style="display:inline"
-                                        onsubmit="return confirm('Delete <%= item.tableName %>?');">
+                                        onsubmit="return confirm('Delete <%= faq.faqTitle %>?');">
                                     <button class="btn btn-delete">Delete</button>
                                 </form>
                             </td>
@@ -92,7 +70,7 @@
     <!-- Client‑side search + simple column sorting -->
     <script>
         (function () {
-            const rows   = [...document.querySelectorAll('#tablesTable tbody tr')];
+            const rows   = [...document.querySelectorAll('#faqsTable tbody tr')];
             const search = document.getElementById('userSearch');
 
             /* ---- live search ---- */
@@ -105,11 +83,11 @@
 
             /* ---- basic sort ---- */
             let asc = true;
-            document.querySelectorAll('#tablesTable thead th[data-col]').forEach(th => {
+            document.querySelectorAll('#faqsTable thead th[data-col]').forEach(th => {
                 th.addEventListener('click', () => {
                     const col = th.dataset.col;
                     asc = !asc;
-                    document.querySelectorAll('#tablesTable thead th[data-col]').forEach(h => {
+                    document.querySelectorAll('#faqsTable thead th[data-col]').forEach(h => {
                         h.innerHTML = h.innerHTML.replace(' ▲', '').replace(' ▼', '');
                     });
                     th.innerHTML = th.textContent + (asc ? ' ▲' : ' ▼');

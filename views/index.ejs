@@ -19,14 +19,14 @@
                     <p class="hero-line">Explore and understand the culture more by tasting the amazing dishes of that culture</p>
 
                     <div class="search location">
-                        <input type="text" class="search-box" placeholder="Search Restaurants, Cuisine..." />
+                        <input type="text" class="search-box" placeholder="Search Cuisine / Menu, Food..." />
                         <button class="search-btn locate-btn"><i class="fa-solid fa-location-crosshairs"></i></button>
                     </div>
 
                     <div class="hero-action-btn-container">
                         <button class="btn" onclick="location.href='/order'">Order Now</button>
-                        <p class="or">or</p>
-                        <button class="btn transparent">Make reservation</button>
+                        <!-- <p class="or">or</p>
+                        <button class="btn transparent">Make reservation</button> -->
                     </div>
                 </div>
 
@@ -106,7 +106,7 @@
                     <span class="section-highlight">From professional chef</span>
                     <p class="section-title">1000+</p>
                     <p class="section-info">Order from our 1000+ food and beverages menu. Food for every taste and mood.</p>
-                    <button class="btn">Order food</button>
+                    <button class="btn" onclick="location.href='/order'">Order food</button>
                 </div>
             </div>
 
@@ -127,7 +127,7 @@
                             <span class="rating">4.2<i class="fa-solid fa-star"></i></span>
                         </div>
                     </div>
-            <% }) %>
+                <% }) %>
             </div>
 
             <div class="leaf-layer left"><img src="public/images/leafs.png" alt=""></div>
@@ -293,7 +293,19 @@
         <section id="faq-section">
             <h1 class="section-title">Frequently Asked Questions</h1>
 
-            <div class="faq">
+            <% featuredFAQs.forEach(faq => { %>
+                <div class="faq">
+                    <div class="question-box">
+                        <h3 class="question"><%= faq.faqTitle %></h3>
+                        <i class="fa-solid fa-plus"></i>
+                    </div>
+                    <div class="answer-box">
+                        <p class="answer"><%= faq.faqDetail %></p>
+                    </div>
+                </div>
+            <% }) %>
+
+            <!-- <div class="faq">
                 <div class="question-box">
                     <h3 class="question">How can I cancel my reservation ?</h3>
                     <i class="fa-solid fa-plus"></i>
@@ -328,7 +340,7 @@
                 <div class="answer-box">
                     <p class="answer">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus et augue turpis. Phasellus in dapibus tortor. Aenean quis nisl cursus, condimentum diam a</p>
                 </div>
-            </div>
+            </div> -->
 
             <div class="dish-layer right"><img src="public/images/side-dish.png" alt=""></div>
         </section>

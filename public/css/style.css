@@ -245,6 +245,7 @@ body {
       .form-control {
         width: 100%;
         padding: 0.625rem 0.75rem;
+        margin-bottom: 10px;
         border: 1px solid #d0d7de;
         border-radius: 0.5rem;
         font-size: 0.95rem;

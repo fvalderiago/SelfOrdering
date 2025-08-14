@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include('../partials/header1.ejs') %>
+  <link rel="stylesheet" href="/public/css/admin.css" />
+  <title>Edit Menu Item</title>
+</head>
+<body>
+  <header>
+    <%- include('../partials/navbar-admin.ejs') %>
+  </header>
+  
+  <div class="admin-container">
+    <!-- Sidebar -->
+    <nav class="sidebar">
+      <h2>Admin Menu</h2>
+      <a href="/admin/view-users" class="menu-item">User Management</a>
+      <a href="/admin/view-menu" class="menu-item">Menu Items</a>
+      <a href="/admin/view-tables" class="menu-item">Table Management</a>
+      <a href="/admin/view-dietary" class="menu-item">Dietary Preferences</a>
+      <a href="/admin/view-faqs" class="menu-item active">FAQs</a>
+      <a href="/admin/admin-report" class="menu-item">Reports</a>
+    </nav>
+
+    <!-- Main Content -->
+    <section class="main-content">
+      <main class="form-wrapper">
+        <h1>Edit FAQ</h1>
+
+        <form           
+          action="/admin/faqs/<%= faq ? faq.id + '?_method=PUT' : '' %>" 
+          method="POST"
+        >
+        
+         <!-- <input type="hidden" name="_method" value="PUT" /> -->
+
+          <!-- Title -->
+          <div class="form-group">
+            <label for="faqTitle">Title</label>
+            <input 
+              type="text" 
+              id="faqTitle" 
+              name="faqTitle" 
+              value="<%= faq.faqTitle %>" 
+              required
+            />
+          </div>
+
+          <!-- Detail -->
+          <div class="form-group">
+            <label for="faqDetail">Detail</label>
+            <!-- <input 
+              type="text" 
+              id="faqDetail" 
+              name="faqDetail" 
+              value="<%= faq.faqDetail %>"
+              required
+            /> -->
+            
+            <textarea id="faqDetail" name="faqDetail" rows="10" cols="50" required><%= faq.faqDetail %></textarea>
+
+          </div>
+
+          <!-- Featured Checkbox -->
+          <div class="form-group checkbox-group">
+              <label for="isFeatured" class="checkbox">
+                  Featured item?
+                  <input type="checkbox" id="isFeatured" name="isFeatured" value="1" <%= faq.isFeatured ? 'checked' : '' %>> 
+              </label>            
+          </div>
+
+          
+
+          <!-- Form Actions -->
+          <div class="form-actions">
+            <button class="btn btn-primary" type="submit">Save</button>
+            <a href="/admin/view-faqs" class="btn btn-secondary">Cancel</a>
+          </div>
+        </form>
+      </main>
+    </section>
+  </div>
+</body>
+</html>

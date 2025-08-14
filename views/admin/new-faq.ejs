@@ -15,31 +15,38 @@
         <h2>Admin Menu</h2>
         <a href="/admin/view-users" class="menu-item">User Management</a>
         <a href="/admin/view-menu" class="menu-item">Menu Items</a>
-        <a href="/admin/view-tables" class="menu-item active">Table Management</a>
+        <a href="/admin/view-tables" class="menu-item">Table Management</a>
         <a href="/admin/view-dietary" class="menu-item">Dietary Preferences</a>
-        <a href="/admin/view-faqs" class="menu-item">FAQs</a>
+        <a href="/admin/view-faqs" class="menu-item active">FAQs</a>
         <a href="/admin/admin-report" class="menu-item">Reports</a>
       </nav>
 
       <!-- Main Content -->
       <section class="main-content">
         <main class="form-wrapper">
-          <h1>Add a Table</h1>
+          <h1>Add an FAQ</h1>
 
-          <form action="/admin/tables" method="POST" enctype="multipart/form-data"> 
+          <form action="/admin/faqs" method="POST"> 
                       
             <div class="form-group">
-              <label>Name</label>
-                <input name="tableName" required>              
+              <label>Title</label>
+                <input type="text" id="faqTitle" name="faqTitle" required />
             </div>
 
             <div class="form-group">
-                <label>Image</label>
-                <input type="file" name="tableImage" accept="image/*">              
+              <label>Detail</label>
+                <textarea name="faqDetail" rows="10" cols="50" required></textarea>
+            </div>
+
+            <div class="form-group checkbox-group">
+                <label class="checkbox">
+                  Featured item?
+                  <input type="checkbox" name="isFeatured" value="1"> 
+                </label>
             </div>
 
             <button class="btn btn-primary">Create</button>
-            <a href="/admin/view-tables" class="btn btn-secondary">Cancel</a>
+            <a href="/admin/view-faqs" class="btn btn-secondary">Cancel</a>
           </form>
         </main>
       </section>

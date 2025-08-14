@@ -1,0 +1,243 @@
+<!DOCTYPE html> 
+<html lang="en">
+<head>
+    <%- include('../partials/header1.ejs') %>
+    <link rel="stylesheet" href="/public/css/chef.css" />
+</head>
+
+<body>
+<header>
+    <%- include('../partials/navbar-chef.ejs') %>
+</header>
+
+<div class="admin-container">
+    <nav class="sidebar">
+        <h2>Chef Menu</h2>
+        <a href="/chef/track-order" class="menu-item">Track Orders</a>
+        <a href="/chef/chef-report" class="menu-item active">Reports</a>
+    </nav>
+
+    <section class="main-content">
+        <h1>Chef Reports</h1>
+
+        <div class="date-filter-container" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+            <div style="display: flex; gap: 15px; align-items: center;">
+                <label for="startDate" class="date-label" style="display: flex; flex-direction: column; font-weight: 600;">
+                    Start Date:
+                    <input type="date" id="startDate" name="startDate" placeholder="dd/mm/yyyy" />
+                </label>
+                <label for="endDate" class="date-label" style="display: flex; flex-direction: column; font-weight: 600;">
+                    End Date:
+                    <input type="date" id="endDate" name="endDate" placeholder="dd/mm/yyyy" />
+                </label>
+                <button id="filterBtn" class="filter-btn" style="padding: 8px 15px; background: #00a6a6; border: none; border-radius: 5px; color: white; cursor: pointer;">
+                    Filter
+                </button>
+            </div>
+            
+            <!-- Download PDF button -->
+            <button id="downloadPdfBtn" style="padding: 8px 15px; background:#00a6a6; color:white; border:none; border-radius:5px; cursor:pointer;">
+                Download PDF
+            </button>
+        </div>
+
+
+        <table class="chef-table" id="chef-orders">
+            <thead>
+                <tr>
+                    <th>Order ID</th>
+                    <th>Table</th>
+                    <th>Time</th>
+                    <th>Status / Actions</th>
+                    <th>Items</th>
+                    <th>Special Instructions</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+
+        <!-- Pagination controls -->
+        <div id="pagination">
+            <button id="prevPage" disabled>&larr;</button>
+            <span id="pageInfo">Page 1</span>
+            <button id="nextPage">&rarr;</button>
+        </div>        
+
+    </section>
+</div>
+
+<!-- jsPDF and html2canvas libraries -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<script>
+    let allOrders = [];
+    let currentPage = 1;
+    const itemsPerPage = 5;
+
+    function getTodayInNZ() {
+        const now = new Date();
+        const options = { timeZone: 'Pacific/Auckland', year: 'numeric', month: '2-digit', day: '2-digit' };
+        const parts = new Intl.DateTimeFormat('en-CA', options).formatToParts(now);
+        const y = parts.find(p => p.type === 'year').value;
+        const m = parts.find(p => p.type === 'month').value;
+        const d = parts.find(p => p.type === 'day').value;
+        return `${y}-${m}-${d}`;
+    }
+
+    function renderOrders() {
+        const tbody = document.querySelector('#chef-orders tbody');
+        tbody.innerHTML = '';
+
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        const pageOrders = allOrders.slice(startIndex, endIndex);
+
+        pageOrders.forEach(order => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${order.orderID}</td>
+                <td>${order.tableName}</td>
+                <td>${new Date(order.orderTime).toLocaleString()}</td>
+                <td>
+                    ${order.status || 'Pending'}<br>
+                    <button class="status-btn start" onclick="updateOrderStatus(${order.orderID}, 'In Progress')">Start</button>
+                    <button class="status-btn complete" onclick="updateOrderStatus(${order.orderID}, 'Completed')">Complete</button>
+                </td>
+                <td>${order.items.join('')}</td>
+                <td>${order.specialInstructions || 'None'}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        const totalPages = Math.ceil(allOrders.length / itemsPerPage);
+        document.getElementById('pageInfo').textContent = `Page ${currentPage} of ${totalPages}`;
+        document.getElementById('prevPage').disabled = currentPage === 1;
+        document.getElementById('nextPage').disabled = endIndex >= allOrders.length;
+    }
+
+    function fetchChefOrders(startDate, endDate, resetPage = false) {
+        let url = '/api/chef/orders';
+        if (startDate && endDate) {
+            url += `?startDate=${startDate}&endDate=${endDate}`;
+        }
+
+        fetch(url)
+            .then(res => res.json())
+            .then(data => {
+                const groupedOrders = {};
+                data.forEach(item => {
+                    if (!groupedOrders[item.orderID]) {
+                        groupedOrders[item.orderID] = {
+                            orderID: item.orderID,
+                            tableName: item.tableName,
+                            orderTime: item.orderTime,
+                            status: item.status,
+                            specialInstructions: item.specialInstructions,
+                            items: []
+                        };
+                    }
+
+                    const dietaryArray = item.dietary
+                        ? [...new Set(item.dietary.split(',').map(tag => tag.trim()))]
+                        : [];
+                    const dietaryTagsHTML = dietaryArray.length
+                        ? `<div class="dietary-tags">${dietaryArray.map(tag => `<span class="diet-tag">${tag}</span>`).join(' ')}</div>`
+                        : '';
+
+                    groupedOrders[item.orderID].items.push(`
+                        <div>
+                            <strong>${item.foodName}</strong> × ${item.quantity}
+                            ${dietaryTagsHTML}
+                        </div>
+                    `);
+                });
+
+                allOrders = Object.values(groupedOrders);
+                if (resetPage) currentPage = 1; // only reset if filtering
+                renderOrders();
+            })
+            .catch(err => console.error('Fetch error:', err));
+    }
+
+    function updateOrderStatus(orderId, newStatus) {
+        fetch(`/api/chef/orders/${orderId}/status`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: newStatus })
+        })
+        .then(res => res.json())
+        .then(result => {
+            if (result.success) {
+                const startDate = document.getElementById('startDate').value;
+                const endDate = document.getElementById('endDate').value;
+                fetchChefOrders(startDate, endDate, false);
+            } else {
+                alert("Failed to update status");
+            }
+        });
+    }
+
+    document.getElementById('filterBtn').addEventListener('click', () => {
+        const startDate = document.getElementById('startDate').value;
+        const endDate = document.getElementById('endDate').value;
+        if (!startDate || !endDate) {
+            alert('Please select both start and end dates.');
+            return;
+        }
+        fetchChefOrders(startDate, endDate, true); // reset page only when filtering
+    });
+
+    document.getElementById('prevPage').addEventListener('click', () => {
+        if (currentPage > 1) {
+            currentPage--;
+            renderOrders();
+        }
+    });
+
+    document.getElementById('nextPage').addEventListener('click', () => {
+        if (currentPage * itemsPerPage < allOrders.length) {
+            currentPage++;
+            renderOrders();
+        }
+    });
+
+    // Download PDF button handler
+    document.getElementById('downloadPdfBtn').addEventListener('click', () => {
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF('p', 'pt', 'a4');
+
+        // Select the table element
+        const table = document.getElementById('chef-orders');
+
+        // Use html2canvas to capture the table as an image
+        html2canvas(table, { scale: 2 }).then(canvas => {
+            const imgData = canvas.toDataURL('image/png');
+
+            // Calculate image width & height to fit A4 page
+            const imgProps = pdf.getImageProperties(imgData);
+            const pdfWidth = pdf.internal.pageSize.getWidth() - 40; // 20pt margin each side
+            const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+            pdf.addImage(imgData, 'PNG', 20, 20, pdfWidth, pdfHeight);
+            pdf.save('chef-orders-report.pdf');
+        }).catch(err => {
+            alert('Failed to generate PDF: ' + err);
+        });
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const todayNZ = getTodayInNZ();
+        document.getElementById('startDate').value = todayNZ;
+        document.getElementById('endDate').value = todayNZ;
+        fetchChefOrders(todayNZ, todayNZ, true);
+    });
+
+    setInterval(() => {
+        const startDate = document.getElementById('startDate').value;
+        const endDate = document.getElementById('endDate').value;
+        fetchChefOrders(startDate, endDate, false); // keep current page
+    }, 5000);
+</script>
+</body>
+</html>

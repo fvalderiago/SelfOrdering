@@ -1,0 +1,15 @@
+<h1>Dietary Preferences for <%= item.foodName %></h1>
+
+<form method="POST" action="/admin/menus/<%= item.id %>/dietary">
+  <label>
+    <input type="checkbox" name="isVegan" <%= item.isVegan ? 'checked' : '' %>> Vegan
+  </label>
+  <label>
+    <input type="checkbox" name="isVegetarian" <%= item.isVegetarian ? 'checked' : '' %>> Vegetarian
+  </label>
+  <label>
+    <input type="checkbox" name="isGlutenFree" <%= item.isGlutenFree ? 'checked' : '' %>> Gluten Free
+  </label>
+  <br/>
+  <button type="submit">Save</button>
+</form>

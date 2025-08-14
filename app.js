@@ -1,9 +1,26 @@
+require('dotenv').config();
 var express = require('express');
+const mysql = require('mysql2/promise');
+const nodemailer = require('nodemailer');
+const crypto = require('crypto');
+const bcrypt = require('bcrypt');
+const ejs = require('ejs');
+const path = require('path');
 var app = express();
 var session = require('express-session');
-var conn = require('./dbConfig');
-const { findUserByUsername, updateUserPassword } = require('./config/db');
+
+const { findUserByUsername, updateUserPassword, getFeaturedFAQs } = require('./config/db');
+
+const methodOverride = require('method-override');
+
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+
 app.set('view engine','ejs');
+var conn = require('./dbConfig');
+
+app.use(methodOverride('_method'));
+
 app.use(session({
     secret: 'yoursecret',
     resave: true,
@@ -13,21 +30,16 @@ app.set('views', __dirname + '/views')
 
 const { getAllUsers, getAllMenuItems, getFeaturedMenuItems } = require('./config/db');
 
-const methodOverride = require('method-override');
-app.use(methodOverride('_method'));
 
 app.use('/public', express.static('public'));
 app.use(session({ secret: 'orderSecret', resave: false, saveUninitialized: true }));
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 
 app.use((req, res, next) => {
   req.session.user = { id: 1, name: 'Admin', role: 'admin' };
   next();
 });
 
-const path = require('path');
 app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
 
 app.get('/login', function (req, res){
@@ -38,87 +50,152 @@ app.get('/register',function(req,res){
     res.render("register",{title:'Register', currentRoute: 'register'});
 });
 
-// Serve the reset password form page
-app.get('/reset-password', (req, res) => {
-  res.render('reset-password',{title:'Reset', currentRoute: 'reset'});
+// MySQL pool connection
+const pool = mysql.createPool({
+  host: process.env.DB_HOST || 'localhost',
+  user: process.env.DB_USER || 'root',
+  password: process.env.DB_PASS || '',
+  database: process.env.DB_NAME || 'self_ordering',
 });
 
-// Handle form submission
-app.post('/reset-password', async (req, res) => {
-  const { username, currentPassword, newPassword, confirmPassword } = req.body;
+console.log("EMAIL_USER:", process.env.EMAIL_USER);
+console.log("EMAIL_PASS:", process.env.EMAIL_PASS ? "loaded" : "missing");
 
-  if (newPassword !== confirmPassword) {
-    return res.send('New password and confirmation do not match.');
-  }
-
-  const user = await findUserByUsername(username);
-
-  if (!user) {
-    return res.send('User not found.');
-  }
-
-  // Verify current password (assuming stored hash in user.passwordHash)
-  const bcrypt = require('bcrypt');
-  const match = await bcrypt.compare(currentPassword, user.password);
-  // if (!match) {
-  //   return res.send('Current password is incorrect.');
-  // }
-  if (user.password !== currentPassword) {
-    // return res.send('Current password is incorrect.');
-    return res.send(`<script>alert('Current password is incorrect.');history.back();</script>`);
-  }
-
-
-  // Hash new password and update in DB
-  const newHash = await bcrypt.hash(newPassword, 10);
-  await updateUserPassword(username, newHash); // your DB update function
-
-  // res.send('Password reset successful!');
-  res.send(`<script>alert('Password reset successful!');history.back();</script>`);
+// Nodemailer transporter
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
 });
 
+// RESET PASSWORD
 app.get('/forgot-password', (req, res) => {
-    res.render('forgot-password', {currentRoute: 'forgot-password'});
+  res.render('forgot-password', { message: null, currentRoute: 'forgot-password' });
 });
 
-app.post('/forgot-password', (req, res) => {
-    const { email } = req.body;
-    
-    // TODO: Implement email lookup and send reset instructions logic here
+app.post('/forgot-password', async (req, res) => {
+  const { email } = req.body;
+  try {
+    const connection = await pool.getConnection();
 
-    console.log(`Password reset requested for: ${email}`);
-    res.send('If an account with that email exists, reset instructions have been sent.');
+    const [users] = await connection.query('SELECT userId FROM users WHERE email = ?', [email]);
+    if (users.length === 0) {
+      connection.release();
+      return res.render('forgot-password', { message: 'If the email exists, a reset link has been sent.' });
+    }
+
+    const userId = users[0].userId;
+    const token = crypto.randomBytes(32).toString('hex');
+    const expiry = new Date(Date.now() + 3600000); // 1 hour
+
+    await connection.query('UPDATE users SET reset_token = ?, reset_token_expiry = ? WHERE userId = ?', [token, expiry, userId]);
+    connection.release();
+
+    const resetLink = `http://localhost:3000/reset-password/${token}`;
+    const templatePath = path.join(__dirname, 'views', 'reset-email.ejs');
+    const emailHtml = await ejs.renderFile(templatePath, { resetLink });
+
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: 'Password Reset Request',
+      html: emailHtml,
+    });
+
+    res.render('forgot-password', { message: 'If the email exists, a reset link has been sent.', currentRoute: 'forgot-password' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Server error');
+  }
+});
+
+app.get('/reset-password/:token', async (req, res) => {
+  const { token } = req.params;
+
+  try {
+    const connection = await pool.getConnection();
+    const [users] = await connection.query(
+      'SELECT userId FROM users WHERE reset_token = ? AND reset_token_expiry > NOW()',
+      [token]
+    );
+    connection.release();
+
+    if (users.length === 0) {
+      return res.send('Reset token is invalid or expired.');
+    }
+
+    res.render('reset-password', { token, message: null, currentRoute: 'reset-password' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Server error');
+  }
+});
+
+app.post('/reset-password/:token', async (req, res) => {
+  const { token } = req.params;
+  const { password, confirmPassword } = req.body;
+
+  if (password !== confirmPassword) {
+    return res.render('reset-password', { token, message: 'Passwords do not match', currentRoute: 'reset-password' });
+  }
+
+  try {
+    const connection = await pool.getConnection();
+
+    const [users] = await connection.query(
+      'SELECT userId FROM users WHERE reset_token = ? AND reset_token_expiry > NOW()',
+      [token]
+    );
+
+    if (users.length === 0) {
+      connection.release();
+      return res.send('Reset token is invalid or expired.');
+    }
+
+    console.log('Password to hash:', password);
+    const userId = users[0].userId;
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    await connection.query(
+      'UPDATE users SET password = ?, reset_token = NULL, reset_token_expiry = NULL WHERE userId = ?',
+      [hashedPassword, userId]
+    );
+
+    connection.release();
+
+    console.log('Full req.body:', req.body);
+
+    // res.send('Password has been reset successfully. You can now log in with your new password.');
+    res.send(`
+      <script>
+        alert('Password has been reset successfully. You can now log in with your new password.');
+        window.location.href = '/login';
+      </script>
+    `);
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Server error');
+  }
 });
 
 
-//This will send a POST request to '/register' which will store 
-//the user information in a table.
-// app.post('/register', (req, res) => {
-//   const { username, email, password } = req.body;
-
-//   if (!username || !password) {
-//     return res.send(`<script>alert('Username & password required');history.back();</script>`);
-//   }
-
-//   // parameterised query → avoids SQL‑injection
-//   const sql =
-//     `INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, 'customer')`;
-
-//   conn.query(sql, [username, email, password], (err) => {
-//     if (err) {
-//       console.error(err);
-//       return res.send(`<script>alert('Registration failed');history.back();</script>`);
-//     }
-
-//     // show the alert **first**, then send the browser to /
-//     res.send(`
-//       <script>
-//         alert('User registered.');
-//         window.location.href = '/';   // “index” page route
-//       </script>
-//     `);
-//   });
+// app.get('/forgot-password', (req, res) => {
+//     res.render('forgot-password', {currentRoute: 'forgot-password'});
 // });
+
+// app.post('/forgot-password', (req, res) => {
+//     const { email } = req.body;
+    
+//     // TODO: Implement email lookup and send reset instructions logic here
+
+//     console.log(`Password reset requested for: ${email}`);
+//     res.send('If an account with that email exists, reset instructions have been sent.');
+// });
+
+
 
 app.post('/register', async (req, res) => {
   const { username, email, password } = req.body;
@@ -148,16 +225,18 @@ app.post('/register', async (req, res) => {
 
 app.get('/', async function (req, res){
 	const featuredItems = await getFeaturedMenuItems();
-    // res.render('index', { currentRoute: 'index' });
+  const featuredFAQs = await getFeaturedFAQs();
 	res.render('index', {
       currentRoute: 'index',
-  	  featuredItems: await getFeaturedMenuItems()
+  	  featuredItems: featuredItems,
+      featuredFAQs: featuredFAQs
     });
 });
 
+
 //This will check whether the records in the table match with the credentials 
 //entered during login.
-const bcrypt = require('bcrypt');
+// const bcrypt = require('bcrypt');
 app.post('/auth', async function(req, res) {
   const email = req.body.email;
   const password = req.body.password;
@@ -282,7 +361,7 @@ app.get('/order', (req, res) => {
       res.render('selectTable', { tables, currentRoute: 'order' });
     });
   } else {
-    conn.query('SELECT * FROM foods', (err, menuItems) => {
+    conn.query('SELECT foodTypes.foodType, foods.foodID, foods.foodTypeID, foods.foodName, foods.price, foods.description, foods.discount, foods.isFeatured, foods.foodImage FROM foodTypes INNER JOIN foods ON foodTypes.foodTypeID = foods.foodTypeID GROUP BY foodTypes.foodType, foods.foodID, foods.foodTypeID, foods.foodName, foods.price, foods.description, foods.discount, foods.isFeatured, foods.foodImage ORDER BY foodTypes.foodType DESC, foods.foodName ASC;', (err, menuItems) => {
       if (err) throw err;
       // res.render('menu', { tableId: req.session.tableId, tableName: req.session.tableName, menuItems, currentRoute: 'order' });
 
@@ -303,14 +382,14 @@ app.get('/order', (req, res) => {
 });
 
 
-app.get('/', async function (req, res){
-	const featuredItems = await getFeaturedMenuItems();
-    // res.render('index', { currentRoute: 'index' });
-	res.render('index', {
-      currentRoute: 'index',
-  	  featuredItems: await getFeaturedMenuItems()
-    });
-});
+// app.get('/', async function (req, res){
+// 	const featuredItems = await getFeaturedMenuItems();
+//     // res.render('index', { currentRoute: 'index' });
+// 	res.render('index', {
+//       currentRoute: 'index',
+//   	  featuredItems: await getFeaturedMenuItems()
+//     });
+// });
 
 
 // Route: Set Selected Table
@@ -449,11 +528,50 @@ app.post('/checkout', (req, res) => {
 
 /* Chef: Track Order */
 app.get('/chef/track-order', (req, res) => {
-  res.render('chef/track-order', { currentRoute: 'chef-track-order' });
+  const { startDate, endDate } = req.query; // optional query params
+  res.render('chef/track-order', { 
+    currentRoute: 'chef-track-order',
+    startDate: startDate || '',
+    endDate: endDate || ''
+  });
 });
 
+
+// app.get('/api/chef/orders', (req, res) => {
+//   const sql = `
+//     SELECT 
+//       o.orderID,
+//       t.tableName,
+//       o.orderTime,
+//       o.status,
+//       f.foodName,
+//       oi.quantity,
+//       o.specialInstructions,
+//       GROUP_CONCAT(DISTINCT dp.name) AS dietary
+//     FROM Orders o
+//     JOIN Tables t ON o.tableNumber = t.id
+//     JOIN OrderItems oi ON o.orderID = oi.orderID
+//     JOIN foods f ON oi.productID = f.foodID
+//     LEFT JOIN orderitem_dietary_preferences oid ON oid.orderItemID = oi.orderItemID
+//     LEFT JOIN dietary_preferences dp ON dp.id = oid.dietaryPreferenceID
+//     WHERE oi.productID <> 0
+//     GROUP BY oi.orderItemID
+//     ORDER BY o.orderTime DESC, o.orderID DESC;
+//   `;
+
+//   conn.query(sql, (err, results) => {
+//     if (err) {
+//       console.error(err);
+//       return res.status(500).send("Error fetching chef orders");
+//     }
+//     res.json(results);
+//   });
+// });
+
 app.get('/api/chef/orders', (req, res) => {
-  const sql = `
+  const { startDate, endDate } = req.query;
+
+  let sql = `
     SELECT 
       o.orderID,
       t.tableName,
@@ -462,6 +580,7 @@ app.get('/api/chef/orders', (req, res) => {
       f.foodName,
       oi.quantity,
       o.specialInstructions,
+      f.price,
       GROUP_CONCAT(DISTINCT dp.name) AS dietary
     FROM Orders o
     JOIN Tables t ON o.tableNumber = t.id
@@ -470,11 +589,26 @@ app.get('/api/chef/orders', (req, res) => {
     LEFT JOIN orderitem_dietary_preferences oid ON oid.orderItemID = oi.orderItemID
     LEFT JOIN dietary_preferences dp ON dp.id = oid.dietaryPreferenceID
     WHERE oi.productID <> 0
+  `;
+
+  const params = [];
+
+  if (startDate && endDate) {
+    // sql += ' AND o.orderTime BETWEEN ? AND ?';
+    // params.push(startDate, endDate);
+    const endDateTime = new Date(new Date(endDate).getTime() + 24*60*60*1000 - 1000); // end of day
+    const formattedEndDate = endDateTime.toISOString().slice(0, 19).replace('T', ' ');
+
+    sql += ' AND o.orderTime BETWEEN ? AND ?';
+    params.push(startDate + ' 00:00:00', formattedEndDate);
+  }
+
+  sql += `
     GROUP BY oi.orderItemID
     ORDER BY o.orderTime DESC, o.orderID DESC;
   `;
 
-  conn.query(sql, (err, results) => {
+  conn.query(sql, params, (err, results) => {
     if (err) {
       console.error(err);
       return res.status(500).send("Error fetching chef orders");
@@ -482,6 +616,7 @@ app.get('/api/chef/orders', (req, res) => {
     res.json(results);
   });
 });
+
 
 app.post('/api/chef/orders/:orderId/status', (req, res) => {
   const { status } = req.body;
@@ -557,7 +692,7 @@ app.delete('/admin/dietary/:id', (req, res) => {
 //   conn.query('SELECT * FROM dietary_preferences', (err, allOptions) => {
 //     if (err) throw err;
 
-//     conn.query('SELECT dietaryPreferenceID FROM food_dietary_preferences WHERE foodID = ?', [foodID], (err2, selected) => {
+//     conn.query('SELECT dietaryPreferenceID FROM dietary_preferences WHERE foodID = ?', [foodID], (err2, selected) => {
 //       if (err2) throw err2;
 //       const selectedIds = selected.map(row => row.dietaryPreferenceID);
 
@@ -576,7 +711,7 @@ app.delete('/admin/dietary/:id', (req, res) => {
 //   const dietary = Array.isArray(req.body.dietary) ? req.body.dietary : [];
 
 //   // Delete old links first
-//   conn.query('DELETE FROM food_dietary_preferences WHERE foodID = ?', [foodID], (err) => {
+//   conn.query('DELETE FROM dietary_preferences WHERE foodID = ?', [foodID], (err) => {
 //     if (err) throw err;
 
 //     if (dietary.length === 0) {
@@ -664,6 +799,35 @@ app.get('/api/dietary-map', (req, res) => {
     results.forEach(row => map[row.id] = row.name);
     res.json(map);
   });
+});
+
+
+/* FAQs */
+app.get('/admin/view-faqs', async (req, res) => {
+	try {
+		const faqs = await getAllFAQs();
+		res.render('admin/view-faqs', {
+			adminEmail: req.session?.user?.email || 'admin@example.com',
+			faqs
+		});
+	} catch (err) {
+		console.error('Error fetching faqs:', err);
+		res.status(500).send('Internal Server Error');
+	}
+});
+
+/* REPORTS */
+app.get('/chef/chef-report', (req, res) => {
+  res.render('chef/chef-report', { currentRoute: 'chef-chef-report' });
+});
+
+app.get('/admin/admin-report', (req, res) => {
+  res.render('admin/admin-report', { currentRoute: 'admin-admin-report' });
+});
+
+app.use((req, res, next) => {
+  console.log(`[${req.method}] ${req.originalUrl}`);
+  next();
 });
 
 //This will be used to return to home page after the members logout.

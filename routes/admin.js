@@ -16,7 +16,12 @@ const {
   getMenuItemById,
   createMenuItem,
   updateMenuItem,
-  deleteMenuItem
+  deleteMenuItem,
+  getAllFAQs,
+  getFAQById,
+  createFAQ,
+  updateFAQ,
+  deleteFAQ,
 } = require('../config/db');
 const uploadFood  = require('../config/uploadFood'); 
 const uploadTable  = require('../config/uploadTable'); 
@@ -209,6 +214,86 @@ router.get('/admin/qr-codes', async (req, res, next) => {
   } catch (err) {
     next(err);
   }
+});
+
+
+
+/* ------------- List FAQs ------------- */
+router.get('/view-faqs', async (req, res, next) => {
+  try {
+    const faqs = await getAllFAQs();
+    console.log(faqs);
+    res.render('admin/view-faqs', { faqs });
+  } catch (err) { next(err); }
+});
+
+
+/* ---------- New‑faq form ---------- */
+router.get('/faqs/new', async (req, res, next) => {
+  console.log('GET /admin/faqs/new route hit');
+  try {
+    const faqs = await getAllFAQs();
+    res.render('admin/new-faq', { faqs });
+  } catch (err) { next(err); }
+});
+
+/* ---------- Create ---------- */
+// router.post('/faqs', async (req, res, next) => {
+//   try {
+//     await createFAQ({ ...req.body });
+//     res.redirect('/admin/view-faqs');
+//   } catch (err) { next(err); }
+// });
+router.post('/faqs', async (req, res, next) => {
+  try {
+    const isFeatured = req.body.isFeatured ? 1 : 0; 
+    const { faqTitle, faqDetail } = req.body;
+    if (!faqTitle || !faqDetail) {
+      return res.status(400).send('FAQ title and detail are required.');
+    }
+
+    await createFAQ({ faqTitle, faqDetail, isFeatured: isFeatured });
+    res.redirect('/admin/view-faqs');
+  } catch (err) {
+    next(err);
+  }
+});
+
+/* ---------- Edit form ---------- */
+router.get('/faqs/:id/edit', async (req, res, next) => {
+  try {
+    const [faq] = await Promise.all([
+      getFAQById(req.params.id)
+    ]);
+    if (!faq) return next();
+    res.render('admin/edit-faq', { faq });
+  } catch (err) { next(err); }
+});
+
+// router.put('/faqs/:id', async (req, res, next) => {
+//   try {
+//     await updateFAQ(req.params.id, { ...req.body });
+//     res.redirect('/admin/view-faqs');
+//   } catch (err) { next(err); }
+// });
+
+router.put('/faqs/:id', async (req, res) => {
+  const isFeatured = req.body.isFeatured ? 1 : 0; 
+  const { faqTitle, faqDetail } = req.body;
+  const id = req.params.id;
+
+  await updateFAQ(id, { faqTitle, faqDetail, isFeatured: isFeatured });
+  res.redirect('/admin/view-faqs');
+});
+
+
+
+/* ---------- Delete ---------- */
+router.delete('/faqs/:id', async (req, res, next) => {
+  try {
+    await deleteFAQ(req.params.id);
+    res.redirect('/admin/view-faqs');
+  } catch (err) { next(err); }
 });
 
 

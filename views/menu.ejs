@@ -21,6 +21,7 @@
             <div class="restaurants-container">
                 <% for (let index = 0; index < menuItems.length; index++) {
                     const item = menuItems[index]; %>
+                    
                     <div class="restaurant">
                     <% if (item.discount != null && item.discount != 0) { %>
                         <p class="discount"><%= item.discount %>% Off</p>

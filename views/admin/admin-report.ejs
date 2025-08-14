@@ -1,0 +1,354 @@
+<!DOCTYPE html> 
+<html lang="en">
+<head>
+    <%- include('../partials/header1.ejs') %>
+    <link rel="stylesheet" href="/public/css/chef.css" />
+</head>
+
+<body>
+<header>
+    <%- include('../partials/navbar-chef.ejs') %>
+</header>
+
+<div class="admin-container">
+    <nav class="sidebar">
+        <h2>Admin Menu</h2>
+        <a href="/admin/view-users" class="menu-item">User Management</a>
+        <a href="/admin/view-menu" class="menu-item">Menu Items</a>
+        <a href="/admin/view-tables" class="menu-item">Table Management</a>
+        <a href="/admin/view-dietary" class="menu-item">Dietary Preferences</a>
+        <a href="/admin/view-faqs" class="menu-item">FAQs</a>
+        <a href="/admin/admin-report" class="menu-item active">Reports</a>
+    </nav>
+
+    <section class="main-content">
+        <h1>Admin Reports</h1>
+
+        <div class="date-filter-container" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+            <div style="display: flex; gap: 15px; align-items: center;">
+                <label for="startDate" class="date-label" style="display: flex; flex-direction: column; font-weight: 600;">
+                    Start Date:
+                    <input type="date" id="startDate" name="startDate" placeholder="dd/mm/yyyy" />
+                </label>
+                <label for="endDate" class="date-label" style="display: flex; flex-direction: column; font-weight: 600;">
+                    End Date:
+                    <input type="date" id="endDate" name="endDate" placeholder="dd/mm/yyyy" />
+                </label>
+                <button id="filterBtn" class="filter-btn" style="padding: 8px 15px; background: #00a6a6; border: none; border-radius: 5px; color: white; cursor: pointer;">
+                    Filter
+                </button>
+            </div>
+            
+            <!-- Download PDF button -->
+            <button id="downloadPdfBtn" style="padding: 8px 15px; background:#00a6a6; color:white; border:none; border-radius:5px; cursor:pointer;">
+                Download PDF
+            </button>
+        </div>
+
+
+        <table class="chef-table" id="chef-orders">
+            <thead>
+                <tr>
+                    <th>Order ID</th>
+                    <th>Table</th>
+                    <th>Time</th>
+                    <th>Status / Actions</th>
+                    <th>Items</th>
+                    <th>Special Instructions</th>
+                    <th>Amount</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
+  
+            <div></div>
+
+            
+            <div id="totalAmount" style="font-weight: 600; font-size: 1.2rem;">
+                Total Amount: $0.00
+            </div>
+        </div>
+
+
+        <!-- Pagination controls -->
+        <div id="pagination">
+            <button id="prevPage" disabled>&larr;</button>
+            <span id="pageInfo">Page 1</span>
+            <button id="nextPage">&rarr;</button>
+        </div>        
+
+    </section>
+</div>
+
+<!-- jsPDF and html2canvas libraries -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<script>
+    let allOrders = [];
+    let currentPage = 1;
+    const itemsPerPage = 5;
+
+    function getTodayInNZ() {
+        const now = new Date();
+        const options = { timeZone: 'Pacific/Auckland', year: 'numeric', month: '2-digit', day: '2-digit' };
+        const parts = new Intl.DateTimeFormat('en-CA', options).formatToParts(now);
+        const y = parts.find(p => p.type === 'year').value;
+        const m = parts.find(p => p.type === 'month').value;
+        const d = parts.find(p => p.type === 'day').value;
+        return `${y}-${m}-${d}`;
+    }
+
+    function renderOrders() {
+        const tbody = document.querySelector('#chef-orders tbody');
+        tbody.innerHTML = '';
+
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        const pageOrders = allOrders.slice(startIndex, endIndex);
+
+        pageOrders.forEach(order => {
+            const formattedAmount = (typeof order.totalAmount === 'number' && !isNaN(order.totalAmount))
+            ? order.totalAmount.toLocaleString('en-NZ', { style: 'currency', currency: 'NZD' })
+            : '$0.00';
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${order.orderID}</td>
+                <td>${order.tableName}</td>
+                <td>${new Date(order.orderTime).toLocaleString()}</td>
+                <td>
+                    ${order.status || 'Pending'}<br>
+                    <button class="status-btn start" onclick="updateOrderStatus(${order.orderID}, 'In Progress')">Start</button>
+                    <button class="status-btn complete" onclick="updateOrderStatus(${order.orderID}, 'Completed')">Complete</button>
+                </td>
+                <td>${order.items.join('')}</td>
+                <td>${order.specialInstructions || 'None'}</td>
+                <td>${formattedAmount}</td> 
+            `;
+            tbody.appendChild(tr);
+            console.log(order.totalAmount);
+        });
+
+        const totalPages = Math.ceil(allOrders.length / itemsPerPage);
+        document.getElementById('pageInfo').textContent = `Page ${currentPage} of ${totalPages}`;
+        document.getElementById('prevPage').disabled = currentPage === 1;
+        document.getElementById('nextPage').disabled = endIndex >= allOrders.length;
+        renderTotalAmount();
+    }
+
+    function fetchChefOrders(startDate, endDate, resetPage = false) {
+        let url = '/api/chef/orders';
+        if (startDate && endDate) {
+            url += `?startDate=${startDate}&endDate=${endDate}`;
+        }
+
+        fetch(url)
+            .then(res => res.json())
+            .then(data => {
+                const groupedOrders = {};
+                data.forEach(item => {
+                    if (!groupedOrders[item.orderID]) {
+                        groupedOrders[item.orderID] = {
+                            orderID: item.orderID,
+                            tableName: item.tableName,
+                            orderTime: item.orderTime,
+                            status: item.status,
+                            specialInstructions: item.specialInstructions,
+                            price: item.price,
+                            quantity: item.quantity,
+                            items: [],
+                            totalAmount: 0
+                        };
+                    }
+
+                    const dietaryArray = item.dietary
+                        ? [...new Set(item.dietary.split(',').map(tag => tag.trim()))]
+                        : [];
+                    const dietaryTagsHTML = dietaryArray.length
+                        ? `<div class="dietary-tags">${dietaryArray.map(tag => `<span class="diet-tag">${tag}</span>`).join(' ')}</div>`
+                        : '';
+
+                    groupedOrders[item.orderID].items.push(`
+                        <div>
+                            <strong>${item.foodName}</strong> × ${item.quantity}
+                            ${dietaryTagsHTML}
+                        </div>
+                    `);
+
+                    groupedOrders[item.orderID].totalAmount += (Number(item.price) || 0) * (Number(item.quantity) || 0);
+                });
+
+                allOrders = Object.values(groupedOrders);
+                if (resetPage) currentPage = 1; // only reset if filtering
+                renderOrders();
+                renderTotalAmount();
+            })
+            .catch(err => console.error('Fetch error:', err));
+    }
+
+    function updateOrderStatus(orderId, newStatus) {
+        fetch(`/api/chef/orders/${orderId}/status`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: newStatus })
+        })
+        .then(res => res.json())
+        .then(result => {
+            if (result.success) {
+                const startDate = document.getElementById('startDate').value;
+                const endDate = document.getElementById('endDate').value;
+                fetchChefOrders(startDate, endDate, false);
+            } else {
+                alert("Failed to update status");
+            }
+        });
+    }
+
+    function renderTotalAmount() {
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        const pageOrders = allOrders.slice(startIndex, endIndex);
+
+        const total = pageOrders.reduce((sum, order) => sum + order.totalAmount, 0);
+        const formattedTotal = total.toLocaleString('en-NZ', { style: 'currency', currency: 'NZD' });
+
+        document.getElementById('totalAmount').textContent = `Total Amount: ${formattedTotal}`;
+    }
+
+    document.getElementById('filterBtn').addEventListener('click', () => {
+        const startDate = document.getElementById('startDate').value;
+        const endDate = document.getElementById('endDate').value;
+        if (!startDate || !endDate) {
+            alert('Please select both start and end dates.');
+            return;
+        }
+        fetchChefOrders(startDate, endDate, true); // reset page only when filtering
+    });
+
+    document.getElementById('prevPage').addEventListener('click', () => {
+        if (currentPage > 1) {
+            currentPage--;
+            renderOrders();
+        }
+    });
+
+    document.getElementById('nextPage').addEventListener('click', () => {
+        if (currentPage * itemsPerPage < allOrders.length) {
+            currentPage++;
+            renderOrders();
+        }
+    });
+
+    // Download PDF button handler
+    document.getElementById('downloadPdfBtn').addEventListener('click', () => {
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF('p', 'pt', 'a4');
+
+    const startDate = document.getElementById('startDate').value;
+        const endDate = document.getElementById('endDate').value;
+
+        // Format dates nicely (e.g. 2025-08-12 → 12 Aug 2025)
+        function formatDate(dateStr) {
+            if (!dateStr) return '';
+            const options = { year: 'numeric', month: 'short', day: 'numeric' };
+            return new Date(dateStr).toLocaleDateString(undefined, options);
+        }
+
+        const formattedStart = formatDate(startDate);
+        const formattedEnd = formatDate(endDate);
+
+        // Calculate grand total of all orders
+        const grandTotal = allOrders.reduce((sum, order) => sum + (order.totalAmount || 0), 0);
+
+        // Create a hidden container to render all orders
+        const hiddenContainer = document.createElement('div');
+        hiddenContainer.style.position = 'fixed';
+        hiddenContainer.style.left = '-9999px'; // off screen
+        hiddenContainer.style.top = '0';
+        hiddenContainer.style.backgroundColor = 'white';
+        hiddenContainer.style.padding = '20px';
+        hiddenContainer.style.width = '900px';
+        hiddenContainer.style.fontSize = '12px';
+        hiddenContainer.style.fontFamily = "'Lato', sans-serif";
+
+        // Add the heading above the table
+        const heading = document.createElement('h2');
+        heading.textContent = `Orders from ${formattedStart} to ${formattedEnd}`;
+        heading.style.marginBottom = '15px';
+        heading.style.color = '#007676';
+        hiddenContainer.appendChild(heading);
+
+        // Create a table copy with all orders and amounts
+        const table = document.createElement('table');
+        table.style.width = '100%';
+        table.style.borderCollapse = 'collapse';
+        table.style.border = '1px solid #ddd';
+        table.innerHTML = `
+            <thead>
+                <tr>
+                    <th style="border:1px solid #ddd; padding:8px;">Order ID</th>
+                    <th style="border:1px solid #ddd; padding:8px;">Table</th>
+                    <th style="border:1px solid #ddd; padding:8px;">Time</th>
+                    <th style="border:1px solid #ddd; padding:8px;">Status</th>
+                    <th style="border:1px solid #ddd; padding:8px;">Items</th>
+                    <th style="border:1px solid #ddd; padding:8px;">Special Instructions</th>
+                    <th style="border:1px solid #ddd; padding:8px; text-align:right;">Amount ($)</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${allOrders.map(order => `
+                    <tr>
+                        <td style="border:1px solid #ddd; padding:8px;">${order.orderID}</td>
+                        <td style="border:1px solid #ddd; padding:8px;">${order.tableName}</td>
+                        <td style="border:1px solid #ddd; padding:8px;">${new Date(order.orderTime).toLocaleString()}</td>
+                        <td style="border:1px solid #ddd; padding:8px;">${order.status || 'Pending'}</td>
+                        <td style="border:1px solid #ddd; padding:8px;">${order.items.join('')}</td>
+                        <td style="border:1px solid #ddd; padding:8px;">${order.specialInstructions || 'None'}</td>
+                        <td style="border:1px solid #ddd; padding:8px; text-align:right;">${(order.totalAmount ?? 0).toFixed(2)}</td>
+                    </tr>
+                `).join('')}
+                <tr>
+                    <td colspan="6" style="border:1px solid #ddd; padding:8px; font-weight:bold; text-align:right;">Grand Total</td>
+                    <td style="border:1px solid #ddd; padding:8px; font-weight:bold; text-align:right;">${grandTotal.toFixed(2)}</td>
+                </tr>
+            </tbody>
+        `;
+
+        hiddenContainer.appendChild(table);
+        document.body.appendChild(hiddenContainer);
+
+        html2canvas(hiddenContainer, { scale: 2 }).then(canvas => {
+            const imgData = canvas.toDataURL('image/png');
+
+            const imgProps = pdf.getImageProperties(imgData);
+            const pdfWidth = pdf.internal.pageSize.getWidth() - 40; // margin
+            const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+            pdf.addImage(imgData, 'PNG', 20, 20, pdfWidth, pdfHeight);
+            pdf.save('chef-orders-report.pdf');
+
+            document.body.removeChild(hiddenContainer);
+        }).catch(err => {
+            alert('Failed to generate PDF: ' + err);
+            document.body.removeChild(hiddenContainer);
+        });
+    });
+
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const todayNZ = getTodayInNZ();
+        document.getElementById('startDate').value = todayNZ;
+        document.getElementById('endDate').value = todayNZ;
+        fetchChefOrders(todayNZ, todayNZ, true);
+    });
+
+    setInterval(() => {
+        const startDate = document.getElementById('startDate').value;
+        const endDate = document.getElementById('endDate').value;
+        fetchChefOrders(startDate, endDate, false); // keep current page
+    }, 5000);
+</script>
+</body>
+</html>

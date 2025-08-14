@@ -110,6 +110,43 @@ async function deleteMenuItem(id) {
   await pool.query('DELETE FROM foods WHERE foodID = ?', [id]);
 }
 
+/* ---------- FAQs ---------- */
+async function getAllFAQs() {
+  const [rows] = await pool.query('SELECT id, faqTitle, faqDetail FROM faqs');
+  return rows;
+}
+
+async function getFeaturedFAQs() {
+  const [rows] = await pool.query('SELECT id, faqTitle, faqDetail FROM faqs WHERE isFeatured = true');
+  return rows;
+}
+
+async function getFAQById(id) {
+  const [rows] = await pool.query('SELECT * FROM faqs WHERE id = ?', [id]);
+  return rows[0];
+}
+
+async function createFAQ({ faqTitle, faqDetail, isFeatured }) {
+  console.log('Creating FAQ:', faqTitle, faqDetail, isFeatured);
+  await pool.query(
+    `INSERT INTO faqs (faqTitle, faqDetail, isFeatured)
+     VALUES (?,?,?)`,
+    [faqTitle, faqDetail, isFeatured]
+  );
+}
+
+async function updateFAQ(id, { faqTitle, faqDetail, isFeatured }) {
+  await pool.query(
+    `UPDATE faqs
+     SET faqTitle=?, faqDetail=?, isFeatured=?
+     WHERE id = ?`,
+    [faqTitle, faqDetail, isFeatured, id]
+  );
+}
+
+async function deleteFAQ(id) {
+  await pool.query('DELETE FROM faqs WHERE id = ?', [id]);
+}
 
 module.exports = {
   findUserByUsername,
@@ -129,5 +166,11 @@ module.exports = {
   createMenuItem,
   updateMenuItem,
   deleteMenuItem,
+  getAllFAQs,
+  getFeaturedFAQs,
+  getFAQById,
+  createFAQ,
+  updateFAQ,
+  deleteFAQ,
   updateUserPassword
 };
