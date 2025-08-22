@@ -4,9 +4,7 @@
 
     <!--ul-->
     <ul class="links-container">
-        <!-- <li class="link-items <%= currentRoute === 'menu' ? 'active' : '' %>"><a href="/menu" class="links">Menu</a></li> -->
         <li class="link-items <%= currentRoute === 'order' ? 'active' : '' %>"><a href="/order" class="links">Order Now</a></li>
-        <!-- <li class="link-items <%= currentRoute === 'restaurants' ? 'active' : '' %>"><a href="restaurants" class="links">Restaurants</a></li> -->
         <li class="link-items <%= currentRoute === 'track-order' ? 'active' : '' %>"><a href="/track-order" class="links">Track Order</a></li>
         <li class="link-items <%= currentRoute === 'login' ? 'active' : '' %>"><a href="/login" class="links">Login / Register</a></li>
     </ul>
@@ -14,15 +12,17 @@
     <!--search box-->
     <div class="nav-extras">
         <div class="search">
-            <input type="text" class="search-box" placeholder="Search Cuisine / Menu, Food..." />
-            <button class="search-btn"><i class="fa-solid fa-magnifying-glass"></i></button>
+            <form action="/order-search" method="get">
+                <input type="text" name="search" class="search-box" placeholder="Search Cuisine / Menu, Food..." />
+                <button class="search-btn"><i class="fa-solid fa-magnifying-glass"></i></button>
+            </form>
         </div>
 
         <!-- optional: dark overlay -->
         <div id="overlay" style="display:none;"></div>
 
         <!--cart btn-->
-        <a href="#" class="cart"><i class="fa-solid fa-cart-shopping"></i></a>
+        <!-- <a href="#" class="cart"><i class="fa-solid fa-cart-shopping"></i></a> -->
 
         <div class="nav-toggler">
             <span></span>

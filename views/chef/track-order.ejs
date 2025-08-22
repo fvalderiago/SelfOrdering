@@ -6,158 +6,160 @@
 </head>
 
 <body>
-<header>
-    <%- include('../partials/navbar-chef.ejs') %>
-</header>
+    <header>
+        <%- include('../partials/navbar-chef.ejs') %>
+    </header>
 
-<div class="admin-container">
-    <nav class="sidebar">
-        <h2>Chef Menu</h2>
-        <a href="/chef/track-order" class="menu-item active">Track Orders</a>
-        <a href="/chef/chef-report" class="menu-item">Reports</a>
-    </nav>
+    <div class="admin-container">
+        <nav class="sidebar">
+            <h2>Chef Menu</h2>
+            <a href="/chef/chef-menu" class="menu-item">Menu Items</a>
+            <a href="/chef/track-order" class="menu-item active">Track Orders</a>
+            <a href="/chef/chef-report" class="menu-item">Reports</a>
+        </nav>
 
-    <section class="main-content">
-        <h1>Chef Order Tracker</h1>
+        <section class="main-content">
+            <h1>Chef Order Tracker</h1>
 
-        <table class="chef-table" id="chef-orders">
-            <thead>
-                <tr>
-                    <th>Order ID</th>
-                    <th>Table</th>
-                    <th>Time</th>
-                    <th>Status / Actions</th>
-                    <th>Items</th>
-                    <th>Special Instructions</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
+            <table class="chef-table" id="chef-orders">
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Table</th>
+                        <th>Time</th>
+                        <th>Status / Actions</th>
+                        <th>Items</th>
+                        <th>Special Instructions</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
 
-        <!-- Pagination -->
-        <div id="pagination">
-            <button id="prevPage" disabled>&larr;</button>
-            <span id="pageInfo">Page 1</span>
-            <button id="nextPage">&rarr;</button>
-        </div>
-    </section>
-</div>
+            <!-- Pagination -->
+            <div id="pagination">
+                <button id="prevPage" disabled>&larr;</button>
+                <span id="pageInfo">Page 1</span>
+                <button id="nextPage">&rarr;</button>
+            </div>
+        </section>
+    </div>
 
-<script>
-    let currentPage = 1;
-    const itemsPerPage = 5;
-    let groupedOrdersData = [];
+    <script>
+        let currentPage = 1;
+        const itemsPerPage = 5;
+        let groupedOrdersData = [];
 
-    function fetchChefOrders() {
-        fetch('/api/chef/orders')
-            .then(res => res.json())
-            .then(data => {
-                const groupedOrders = {};
-                data.forEach(item => {
-                    if (!groupedOrders[item.orderID]) {
-                        groupedOrders[item.orderID] = {
-                            orderID: item.orderID,
-                            tableName: item.tableName,
-                            orderTime: item.orderTime,
-                            status: item.status,
-                            specialInstructions: item.specialInstructions,
-                            items: []
-                        };
+        function fetchChefOrders() {
+            fetch('/api/chef/orders')
+                .then(res => res.json())
+                .then(data => {
+                    console.log(data);
+                    const groupedOrders = {};
+                    data.forEach(item => {
+                        if (!groupedOrders[item.orderID]) {
+                            groupedOrders[item.orderID] = {
+                                orderID: item.orderID,
+                                tableName: item.tableName,
+                                orderTime: item.orderTime,
+                                status: item.status,
+                                specialInstructions: item.specialInstructions,
+                                items: []
+                            };
+                        }
+
+                        const dietaryArray = item.dietary
+                            ? [...new Set(item.dietary.split(',').map(tag => tag.trim()))]
+                            : [];
+
+                        const dietaryTagsHTML = dietaryArray.length
+                            ? `<div class="dietary-tags">${dietaryArray.map(tag => `<span class="diet-tag">${tag}</span>`).join(' ')}</div>`
+                            : '';
+
+                        groupedOrders[item.orderID].items.push(`
+                            <div>
+                                <strong>${item.foodName}</strong> × ${item.quantity}
+                                ${dietaryTagsHTML}
+                            </div>
+                        `);
+                    });
+
+                    groupedOrdersData = Object.values(groupedOrders);
+                    if (currentPage > Math.ceil(groupedOrdersData.length / itemsPerPage)) {
+                        currentPage = Math.max(1, Math.ceil(groupedOrdersData.length / itemsPerPage));
                     }
+                    renderOrders();
+                })
+                .catch(err => console.error('Fetch error:', err));
+        }
 
-                    const dietaryArray = item.dietary
-                        ? [...new Set(item.dietary.split(',').map(tag => tag.trim()))]
-                        : [];
+        function renderOrders() {
+            const tbody = document.querySelector('#chef-orders tbody');
+            tbody.innerHTML = '';
 
-                    const dietaryTagsHTML = dietaryArray.length
-                        ? `<div class="dietary-tags">${dietaryArray.map(tag => `<span class="diet-tag">${tag}</span>`).join(' ')}</div>`
-                        : '';
+            const start = (currentPage - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+            const visibleOrders = groupedOrdersData.slice(start, end);
 
-                    groupedOrders[item.orderID].items.push(`
-                        <div>
-                            <strong>${item.foodName}</strong> × ${item.quantity}
-                            ${dietaryTagsHTML}
-                        </div>
-                    `);
-                });
+            visibleOrders.forEach(order => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${order.orderID}</td>
+                    <td>${order.tableName}</td>
+                    <td>${new Date(order.orderTime).toLocaleString()}</td>
+                    <td>
+                        ${order.status || 'Pending'}<br>
+                        <button class="status-btn start" onclick="updateOrderStatus(${order.orderID}, 'In Progress')">Start</button>
+                        <button class="status-btn complete" onclick="updateOrderStatus(${order.orderID}, 'Completed')">Complete</button>
+                    </td>
+                    <td>${order.items.join('')}</td>
+                    <td>${order.specialInstructions || 'None'}</td>
+                `;
+                tbody.appendChild(tr);
+            });
 
-                groupedOrdersData = Object.values(groupedOrders);
-                if (currentPage > Math.ceil(groupedOrdersData.length / itemsPerPage)) {
-                    currentPage = Math.max(1, Math.ceil(groupedOrdersData.length / itemsPerPage));
-                }
+            updatePagination();
+        }
+
+        function updatePagination() {
+            document.getElementById('pageInfo').innerText =
+                `Page ${currentPage} of ${Math.max(1, Math.ceil(groupedOrdersData.length / itemsPerPage))}`;
+            document.getElementById('prevPage').disabled = currentPage === 1;
+            document.getElementById('nextPage').disabled = currentPage === Math.ceil(groupedOrdersData.length / itemsPerPage);
+        }
+
+        document.getElementById('prevPage').addEventListener('click', () => {
+            if (currentPage > 1) {
+                currentPage--;
                 renderOrders();
-            })
-            .catch(err => console.error('Fetch error:', err));
-    }
-
-    function renderOrders() {
-        const tbody = document.querySelector('#chef-orders tbody');
-        tbody.innerHTML = '';
-
-        const start = (currentPage - 1) * itemsPerPage;
-        const end = start + itemsPerPage;
-        const visibleOrders = groupedOrdersData.slice(start, end);
-
-        visibleOrders.forEach(order => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td>${order.orderID}</td>
-                <td>${order.tableName}</td>
-                <td>${new Date(order.orderTime).toLocaleString()}</td>
-                <td>
-                    ${order.status || 'Pending'}<br>
-                    <button class="status-btn start" onclick="updateOrderStatus(${order.orderID}, 'In Progress')">Start</button>
-                    <button class="status-btn complete" onclick="updateOrderStatus(${order.orderID}, 'Completed')">Complete</button>
-                </td>
-                <td>${order.items.join('')}</td>
-                <td>${order.specialInstructions || 'None'}</td>
-            `;
-            tbody.appendChild(tr);
-        });
-
-        updatePagination();
-    }
-
-    function updatePagination() {
-        document.getElementById('pageInfo').innerText =
-            `Page ${currentPage} of ${Math.max(1, Math.ceil(groupedOrdersData.length / itemsPerPage))}`;
-        document.getElementById('prevPage').disabled = currentPage === 1;
-        document.getElementById('nextPage').disabled = currentPage === Math.ceil(groupedOrdersData.length / itemsPerPage);
-    }
-
-    document.getElementById('prevPage').addEventListener('click', () => {
-        if (currentPage > 1) {
-            currentPage--;
-            renderOrders();
-        }
-    });
-
-    document.getElementById('nextPage').addEventListener('click', () => {
-        if (currentPage < Math.ceil(groupedOrdersData.length / itemsPerPage)) {
-            currentPage++;
-            renderOrders();
-        }
-    });
-
-    function updateOrderStatus(orderId, newStatus) {
-        fetch(`/api/chef/orders/${orderId}/status`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ status: newStatus })
-        })
-        .then(res => res.json())
-        .then(result => {
-            if (result.success) {
-                fetchChefOrders();
-            } else {
-                alert("Failed to update status");
             }
         });
-    }
 
-    setInterval(fetchChefOrders, 5000);
-    document.addEventListener('DOMContentLoaded', fetchChefOrders);
-</script>
+        document.getElementById('nextPage').addEventListener('click', () => {
+            if (currentPage < Math.ceil(groupedOrdersData.length / itemsPerPage)) {
+                currentPage++;
+                renderOrders();
+            }
+        });
+
+        function updateOrderStatus(orderId, newStatus) {
+            fetch(`/api/chef/orders/${orderId}/status`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: newStatus })
+            })
+            .then(res => res.json())
+            .then(result => {
+                if (result.success) {
+                    fetchChefOrders();
+                } else {
+                    alert("Failed to update status");
+                }
+            });
+        }
+
+        setInterval(fetchChefOrders, 5000);
+        document.addEventListener('DOMContentLoaded', fetchChefOrders);
+    </script>
 
 </body>
 </html>

@@ -3,6 +3,7 @@
 
 <head>
     <%- include('partials/header1.ejs') %>
+    <link rel="stylesheet" href="/public/css/style.css" />
     <link rel="stylesheet" href="/public/css/customer.css" />
 </head>
 
@@ -11,9 +12,13 @@
         <!--navbar-->
         <%- include('partials/navbar-guest.ejs') %> <!--not logged in customer-->
     </header>
-
     <!--restaurants section-->
     <section id="restaurants-section">
+
+        <form action="/order-search" method="get" class="search-item">
+            <input type="text" name="search" class="search-item-box" placeholder="Search Cuisine / Menu, Food..." />
+            <button class="search-item-btn"><i class="fa-solid fa-magnifying-glass"></i></button>
+        </form>
 
         <div class="leaf-layer right" data-aos="zoom-in-up"><img src="public/images/leafs-right.png" alt="leaf right"></div>
 
@@ -35,7 +40,7 @@
                         <p class="place"><%= item.description %></p>
                         <p class="discount-text">
                         <% if (item.discount != null && item.discount != 0) { %>
-                            <%= item.discount %>% on your first reservation
+                            <%= item.discount %>% on your first order
                         <% } %>
                         </p>
                         <span class="rating">$<%= item.price %></span>
@@ -172,28 +177,6 @@
         });
 
         /* ─── global addToCart (HTML uses onclick='...') ───── */
-        // function addToCart(item, idx) {
-        //     const qty = quantities[idx] || 1;
-
-        //     let cart = getCart();
-        //     const i = cart.findIndex(c => c.foodId === (item.foodId || item.id));
-
-        //     if (i > -1) cart[i].qty += qty;
-        //     else cart.push({
-        //         foodId: item.foodId || item.id,
-        //         name: item.foodName,
-        //         price: item.price,
-        //         qty
-        //     });
-
-        //     setCart(cart);
-        //     updateCartBadge();
-        //     alert(`${qty} × ${item.foodName} added to cart`);
-
-        //     quantities[idx] = 1;
-        //     document.getElementById(`qty-${idx}`).innerText = 1;
-        // }
-
         function addToCart(item, idx, dietaryContainerId) {
             const qty = quantities[idx] || 1;
             let cart = getCart();

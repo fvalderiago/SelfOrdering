@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('../partials/header1.ejs') %>
+    <link rel="stylesheet" href="/public/css/admin.css" />
+</head>
+<body>
+    <header>
+        <%- include('../partials/navbar-admin.ejs') %>
+    </header>
+    
+    <div class="admin-container">
+        <!-- Sidebar -->
+        <nav class="sidebar">
+            <h2>Chef Menu</h2>
+            <a href="/chef/chef-menu" class="menu-item active">Menu Items</a>
+            <a href="/chef/track-order" class="menu-item">Track Orders</a>
+            <a href="/chef/chef-report" class="menu-item">Reports</a>
+        </nav>
+
+        <!-- Main content -->
+        <section class="main-content">
+            <h1>Menu Items</h1>            
+            <!-- Toolbar -->
+            <div class="toolbar">
+                <input id="userSearch" class="search-input" type="search"
+                       placeholder="Search by food type, name, or price…">
+                <!-- Slot for future bulk‑action buttons or CSV export, etc. -->
+            </div>
+
+            <div class="mb-3">
+                <a href="/admin/menus/new" class="btn btn-add"><i class="fa-solid fa-plus"></i> Add item</a>
+            </div>
+            <!-- Menu table -->
+            <table class="users-table" id="menuTable">
+                <thead>
+                    <tr>
+                        <th data-col="foodImage">Image</th>
+                        <th data-col="foodID">ID &#x25B2;</th>
+                        <th data-col="foodType">Type</th>
+                        <th data-col="foodName">Name</th>
+                        <th data-col="price">Price</th>
+                        <th style="width: 250px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% menuItems.forEach(item => { %>
+                        <tr>
+                            <td>
+                                <img src="/public/<%= item.foodImage %>" style="width:100px;" alt="<%= item.foodName %>" />
+                                <script>
+                                    document.getElementById('pictureInput')?.addEventListener('change', function(event) {
+                                        const file = event.target.files[0];
+                                        if (file) {
+                                        const reader = new FileReader();
+                                        reader.onload = function(e) {
+                                            document.getElementById('picturePreview').src = e.target.result;
+                                        };
+                                        reader.readAsDataURL(file);
+                                        }
+                                    });
+                                </script>
+                            </td>
+                            <td><%= item.foodID %></td>
+                            <td><%= item.foodType %></td>
+                            <td><%= item.foodName %></td>
+                            <td>$<%= item.price %></td>
+                            <td>
+                                <a href="/admin/menus/<%= item.foodID %>/edit" class="btn btn-edit">Edit</a>
+
+                                <form action="/admin/menus/<%= item.foodID %>?_method=DELETE"
+                                        method="POST"
+                                        style="display:inline"
+                                        onsubmit="return confirm('Delete <%= item.foodName %>?');">
+                                    <button class="btn btn-delete">Delete</button>
+                                </form>
+                                <!-- <a href="/admin/menus/<%= item.foodID %>/dietary" class="btn btn-secondary">Dietary</a> -->
+                            </td>
+                        </tr>
+                    <% }) %>
+
+                </tbody>
+            </table>
+        </section>
+    </div>
+
+    <!-- Client‑side search + simple column sorting -->
+    <script>
+        (function () {
+            const rows   = [...document.querySelectorAll('#menuTable tbody tr')];
+            const search = document.getElementById('userSearch');
+
+            /* ---- live search ---- */
+            search.addEventListener('input', e => {
+                const q = e.target.value.toLowerCase();
+                rows.forEach(row => {
+                    row.style.display = row.innerText.toLowerCase().includes(q) ? '' : 'none';
+                });
+            });
+
+            /* ---- basic sort ---- */
+            let asc = true;
+            document.querySelectorAll('#menuTable thead th[data-col]').forEach(th => {
+                th.addEventListener('click', () => {
+                    const col = th.dataset.col;
+                    asc = !asc;
+                    document.querySelectorAll('#menuTable thead th[data-col]').forEach(h => {
+                        h.innerHTML = h.innerHTML.replace(' ▲', '').replace(' ▼', '');
+                    });
+                    th.innerHTML = th.textContent + (asc ? ' ▲' : ' ▼');
+
+                    rows.sort((a, b) => {
+                        const ta = a.querySelector('td:nth-child(' + (th.cellIndex + 1) + ')').innerText;
+                        const tb = b.querySelector('td:nth-child(' + (th.cellIndex + 1) + ')').innerText;
+                        return asc ? ta.localeCompare(tb, undefined, {numeric: true}) :
+                                     tb.localeCompare(ta, undefined, {numeric: true});
+                    });
+                    const tbody = th.closest('table').querySelector('tbody');
+                    rows.forEach(r => tbody.appendChild(r));
+                });
+            });
+        })();
+    </script>
+</body>
+</html>

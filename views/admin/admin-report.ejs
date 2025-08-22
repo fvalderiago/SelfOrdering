@@ -7,7 +7,7 @@
 
 <body>
 <header>
-    <%- include('../partials/navbar-chef.ejs') %>
+    <%- include('../partials/navbar-admin.ejs') %>
 </header>
 
 <div class="admin-container">
@@ -120,7 +120,6 @@
                 <td>${new Date(order.orderTime).toLocaleString()}</td>
                 <td>
                     ${order.status || 'Pending'}<br>
-                    <button class="status-btn start" onclick="updateOrderStatus(${order.orderID}, 'In Progress')">Start</button>
                     <button class="status-btn complete" onclick="updateOrderStatus(${order.orderID}, 'Completed')">Complete</button>
                 </td>
                 <td>${order.items.join('')}</td>

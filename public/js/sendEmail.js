@@ -1,14 +1,14 @@
 const nodemailer = require('nodemailer');
 
 async function sendEmail({ to, subject, text }) {
-  // Create transporter with your SMTP config
+  // Create transporter with SMTP config
   const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',       // replace with your SMTP server
+    host: 'smtp.gmail.com',       // replace with SMTP server
     port: 587,                      // or 465 for secure
     secure: false,                  // true if port 465
     auth: {
-      user: 'currysteps1403@gmail.com',  // your SMTP username
-      pass: 'hwcp meiz hyyt jmod',     // your SMTP password
+      user: 'currysteps1403@gmail.com',  // SMTP username
+      pass: 'hwcp meiz hyyt jmod',     // SMTP password
     },
   });
 

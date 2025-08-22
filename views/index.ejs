@@ -19,8 +19,10 @@
                     <p class="hero-line">Explore and understand the culture more by tasting the amazing dishes of that culture</p>
 
                     <div class="search location">
-                        <input type="text" class="search-box" placeholder="Search Cuisine / Menu, Food..." />
-                        <button class="search-btn locate-btn"><i class="fa-solid fa-location-crosshairs"></i></button>
+                        <form action="/search" method="get">
+                            <input type="text" class="search-box" placeholder="Search Cuisine / Menu, Food..." />
+                            <button class="search-btn locate-btn"><i class="fa-solid fa-location-crosshairs"></i></button>
+                        </form>
                     </div>
 
                     <div class="hero-action-btn-container">
@@ -123,7 +125,7 @@
                             <h3 class="restaurant-name"><%= item.foodType %></h3>
                             <p class="menu"><%= item.foodName %></p>
                             <p class="place"><%= item.description %></p>
-                            <p class="discount-text"><% if (item.discount != null && item.discount != 0) { %><%= item.discount %>% on your first reservation <% } %></p>
+                            <p class="discount-text"><% if (item.discount != null && item.discount != 0) { %><%= item.discount %>% on your first order <% } %></p>
                             <span class="rating">4.2<i class="fa-solid fa-star"></i></span>
                         </div>
                     </div>

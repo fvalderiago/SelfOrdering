@@ -1,14 +1,14 @@
 /* =====  COLOUR TOKENS  ===== */
 :root {
   --brand-50:  #eef7f7;
-  --brand-500: #006d6b;   /* hero‑text / primary button */
-  --brand-600: #005c5a;   /* hover / active */
+  --brand-500: #006d6b;
+  --brand-600: #005c5a;
   --text-dark: #003d3c;
   --white:     #ffffff;
 }
 
 /* =====  LAYOUT  ===== */
-body {             /* keeps sidebar + content side‑by‑side */
+body {
   display: flex;
   margin: 0;
   font-family: 'Lato', sans-serif;
@@ -63,7 +63,7 @@ body {             /* keeps sidebar + content side‑by‑side */
 .admin-content {
   flex: 1;
   padding: 2rem 2.5rem;
-  min-width: 0;        /* fixes overflow in flexbox */
+  min-width: 0;
 }
 
 
@@ -102,7 +102,6 @@ body {             /* keeps sidebar + content side‑by‑side */
 
       .form-wrapper {
         max-width: 600px;
-        /* margin: auto; */
       }
 
       .form-group {

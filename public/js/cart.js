@@ -32,15 +32,6 @@ function getCart() {
         const itemTotal = item.price * item.qty;
         total += itemTotal;
 
-        // row.innerHTML = `
-        //   <td>${item.name}</td>
-        //   <td>$${item.price}</td>
-        //   <td>${item.qty}</td>
-        //   <td>$${itemTotal.toFixed(2)}</td>
-        //   <td><button class="remove-btn" onclick="removeFromCart(${index})">Remove</button></td>
-        // `;
-
-
         const dietaryText = (item.dietary || [])
           .map(id => dietaryMap[id] || `ID ${id}`)
           .join(", ") || "None";
@@ -77,6 +68,11 @@ function getCart() {
       updateCartBadge();
     }
 
+    function getTableIdFromUrl() {
+      const params = new URLSearchParams(window.location.search);
+      return params.get("table");
+    }
+
     function checkout() {
       const cart = getCart();
 
@@ -86,11 +82,12 @@ function getCart() {
       }
 
       const specialInstructions = document.getElementById("special-instructions").value;
+      const tableId = getTableIdFromUrl();
 
       fetch('/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cart, specialInstructions  })
+        body: JSON.stringify({ cart, specialInstructions, tableId  })
       })
       .then(res => res.json())
       .then(result => {
@@ -98,7 +95,18 @@ function getCart() {
           localStorage.removeItem("cart");
           updateCartBadge();
           alert("Order placed successfully!");
-          window.location.href = "/track-order";
+          // window.location.href = "/track-order";
+          
+          // Save receipt
+          localStorage.setItem("receipt", JSON.stringify(result.receipt));
+
+          // Auto-download PDF
+          window.location.href = `/receipt/${result.receipt.orderId}/pdf`;
+
+          // Redirect to tracking after download
+          setTimeout(() => {
+            window.location.href = "/track-order";
+          }, 2000);
         } else {
           alert("Error placing order.");
         }
@@ -110,7 +118,7 @@ function getCart() {
     }
 
    document.addEventListener("DOMContentLoaded", async () => {
-      await loadDietaryMap();     // ← Wait for dietary names
+      await loadDietaryMap();
       renderCart();
       updateCartBadge();
     });

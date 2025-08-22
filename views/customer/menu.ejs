@@ -15,8 +15,8 @@
             <nav class="sidebar">
                 <h2>Customer Menu</h2>
                 <a href="/customer/menu" class="menu-item active">Choose from the Menu</a>
-                <a href="/customer/my-account" class="menu-item">My Account</a>
-                <a href="/customer/my-orders" class="menu-item">My Orders</a>
+                <!-- <a href="/customer/my-account" class="menu-item">My Account</a>
+                <a href="/customer/my-orders" class="menu-item">My Orders</a> -->
             </nav>
 
             <!-- Main content -->
@@ -39,7 +39,7 @@
                             <p class="place"><%= item.description %></p>
                             <p class="discount-text">
                             <% if (item.discount != null && item.discount != 0) { %>
-                                <%= item.discount %>% on your first reservation
+                                <%= item.discount %>% on your first order
                             <% } %>
                             </p>
                             <span class="rating">$<%= item.price %></span>
@@ -146,9 +146,9 @@
             const qty = quantities[idx] || 1;
 
             let cart = getCart();
-            console.log(item); // Check what property holds the unique ID
+            console.log(item);
 
-            const foodID = item.foodID; // Or item.id if that’s what exists consistently
+            const foodID = item.foodID;
             if (!foodID) {
             alert("Missing foodID!");
             return;

@@ -33,7 +33,7 @@ router.get('/view-users', async (req, res, next) => {
   try {
     const users = await getAllUsers();
     res.render('admin/view-users', {
-      adminEmail: req.session?.user?.email || 'admin@example.com', // fallback
+      adminEmail: req.session?.user?.email || 'admin@example.com',
       users
     });
   } catch (err) { next(err); }
@@ -66,7 +66,7 @@ router.delete('/users/:id', async (req, res, next) => {
 
 
 
-/* ------------- List tables ------------- */
+/* ------------- List TABLES ------------- */
 router.get('/view-tables', async (req, res, next) => {
   try {
     const tables = await getAllTables();
@@ -101,7 +101,7 @@ router.get('/tables/:id/edit', async (req, res, next) => {
     const [table, foodTypes] = await Promise.all([
       getTableById(req.params.id)
     ]);
-    if (!table) return next();          // 404 fallback
+    if (!table) return next();
     res.render('admin/edit-table', { table });
   } catch (err) { next(err); }
 });
@@ -132,11 +132,10 @@ router.delete('/tables/:id', async (req, res, next) => {
 
 
 
-/* ---------- List menu items ---------- */
+/* ---------- List MENU ITEMS ---------- */
 router.get('/view-menu', async (req, res, next) => {
   try {
     const menuItems = await getAllMenuItems();
-    console.log(menuItems);
     res.render('admin/view-menu', { menuItems });
   } catch (err) { next(err); }
 });
@@ -168,7 +167,7 @@ router.get('/menus/:id/edit', async (req, res, next) => {
       getMenuItemById(req.params.id),
       getAllFoodTypes()
     ]);
-    if (!menuItem) return next();          // 404 fallback
+    if (!menuItem) return next();
     res.render('admin/edit-menu', { menuItem, foodTypes });
   } catch (err) { next(err); }
 });
@@ -194,35 +193,10 @@ router.delete('/menus/:id', async (req, res, next) => {
 });
 
 
-/* ---------- ORDERS ---------- */
-const QRCode = require('qrcode');
-
-router.get('/admin/qr-codes', async (req, res, next) => {
-  try {
-    const baseUrl = req.protocol + '://' + req.get('host'); // e.g. http://localhost:3000
-    const totalTables = 10; // or fetch from DB/config
-
-    // Generate QR code data URLs for each table
-    const qrCodes = [];
-    for (let tableNum = 1; tableNum <= totalTables; tableNum++) {
-      const url = `${baseUrl}/order?table=${tableNum}`;
-      const qrCodeDataUrl = await QRCode.toDataURL(url);
-      qrCodes.push({ tableNum, qrCodeDataUrl, url });
-    }
-
-    res.render('admin/qr-codes', { qrCodes });
-  } catch (err) {
-    next(err);
-  }
-});
-
-
-
 /* ------------- List FAQs ------------- */
 router.get('/view-faqs', async (req, res, next) => {
   try {
     const faqs = await getAllFAQs();
-    console.log(faqs);
     res.render('admin/view-faqs', { faqs });
   } catch (err) { next(err); }
 });
@@ -238,12 +212,6 @@ router.get('/faqs/new', async (req, res, next) => {
 });
 
 /* ---------- Create ---------- */
-// router.post('/faqs', async (req, res, next) => {
-//   try {
-//     await createFAQ({ ...req.body });
-//     res.redirect('/admin/view-faqs');
-//   } catch (err) { next(err); }
-// });
 router.post('/faqs', async (req, res, next) => {
   try {
     const isFeatured = req.body.isFeatured ? 1 : 0; 
@@ -270,13 +238,6 @@ router.get('/faqs/:id/edit', async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-// router.put('/faqs/:id', async (req, res, next) => {
-//   try {
-//     await updateFAQ(req.params.id, { ...req.body });
-//     res.redirect('/admin/view-faqs');
-//   } catch (err) { next(err); }
-// });
-
 router.put('/faqs/:id', async (req, res) => {
   const isFeatured = req.body.isFeatured ? 1 : 0; 
   const { faqTitle, faqDetail } = req.body;
@@ -285,8 +246,6 @@ router.put('/faqs/:id', async (req, res) => {
   await updateFAQ(id, { faqTitle, faqDetail, isFeatured: isFeatured });
   res.redirect('/admin/view-faqs');
 });
-
-
 
 /* ---------- Delete ---------- */
 router.delete('/faqs/:id', async (req, res, next) => {

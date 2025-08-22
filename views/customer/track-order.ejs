@@ -4,30 +4,6 @@
     <head>
         <%- include('../partials/header1.ejs') %>
         <link rel="stylesheet" href="/public/css/customer.css" />
-        <!-- <style>
-            .cart-container {
-                max-width: 1200px;
-                margin: auto;
-                padding: 20px;
-            }
-
-            .cart-table {
-                width: 100%;
-                border-collapse: collapse;
-                margin-top: 20px;
-            }
-
-            .cart-table th,
-            .cart-table td {
-                border: 1px solid #ddd;
-                padding: 12px;
-                text-align: center;
-            }
-
-            .cart-table th {
-                background: #f8f8f8;
-            }
-        </style> -->
     </head>
 
     <body>
@@ -37,7 +13,7 @@
 
         <section id="track-order-section"> 
             <div class="cart-container">
-                <h1>Your Table Orders (Table ID: <%= tableId %>)</h1>
+                <h1>Your Table Orders (<%= tableName %>)</h1>
                 <table class="cart-table" id="customer-orders">
                     <thead>
                         <tr>
@@ -57,6 +33,16 @@
         </footer>
 
         <script>
+
+            /* ─── util functions ───────────────────── */
+            function getCart()        { return JSON.parse(localStorage.getItem('cart') || '[]'); }
+            function setCart(newCart) { localStorage.setItem('cart', JSON.stringify(newCart)); }
+            function cartCount()      { return getCart().reduce((s,i)=>s+i.qty,0); }
+            function updateCartBadge(){ document.getElementById('cart-count').innerText = cartCount(); }
+
+            // Update badge
+            updateCartBadge();
+            
             function fetchCustomerOrders() {
                 fetch('/api/customer/orders')
                     .then(res => res.json())

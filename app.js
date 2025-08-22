@@ -70,7 +70,7 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-// RESET PASSWORD
+/* RESET PASSWORD */
 app.get('/forgot-password', (req, res) => {
   res.render('forgot-password', { message: null, currentRoute: 'forgot-password' });
 });
@@ -154,7 +154,6 @@ app.post('/reset-password/:token', async (req, res) => {
       return res.send('Reset token is invalid or expired.');
     }
 
-    console.log('Password to hash:', password);
     const userId = users[0].userId;
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -167,7 +166,6 @@ app.post('/reset-password/:token', async (req, res) => {
 
     console.log('Full req.body:', req.body);
 
-    // res.send('Password has been reset successfully. You can now log in with your new password.');
     res.send(`
       <script>
         alert('Password has been reset successfully. You can now log in with your new password.');
@@ -181,22 +179,7 @@ app.post('/reset-password/:token', async (req, res) => {
   }
 });
 
-
-// app.get('/forgot-password', (req, res) => {
-//     res.render('forgot-password', {currentRoute: 'forgot-password'});
-// });
-
-// app.post('/forgot-password', (req, res) => {
-//     const { email } = req.body;
-    
-//     // TODO: Implement email lookup and send reset instructions logic here
-
-//     console.log(`Password reset requested for: ${email}`);
-//     res.send('If an account with that email exists, reset instructions have been sent.');
-// });
-
-
-
+/* Register User */
 app.post('/register', async (req, res) => {
   const { username, email, password } = req.body;
 
@@ -236,7 +219,6 @@ app.get('/', async function (req, res){
 
 //This will check whether the records in the table match with the credentials 
 //entered during login.
-// const bcrypt = require('bcrypt');
 app.post('/auth', async function(req, res) {
   const email = req.body.email;
   const password = req.body.password;
@@ -292,28 +274,12 @@ app.get('/member', function (req, res, next) {
 	}
 });
 
-app.get('/menu', function (req,res){
-   conn.query("SELECT foodTypes.foodType, foods.foodID, foods.foodTypeID, foods.foodName, foods.price, foods.description, foods.discount, foods.isFeatured, foods.foodImage FROM foodTypes INNER JOIN foods ON foodTypes.foodTypeID = foods.foodTypeID ORDER BY foodTypes.foodType, foods.foodName", function(err,result){
-     if (err) throw err;
-     console.log(result);
-         res.render('menuGaneshan',{title: 'My Menu', menuData:result, currentRoute: 'menu'});
-   });
- });
-
-
-app.get('/restaurants', function (req, res){
-    res.render('restaurants', { currentRoute: 'restaurants' });
-});
-
-// app.get('/track-order', function (req, res){
-//     res.render('track-order', { currentRoute: 'track-order' });
-// });
-
+/* ORDER */
 app.get('/track-order', (req, res) => {
   if (!req.session.tableId) {
     return res.send(`<script>alert("Please select a table first."); window.location.href = "/order";</script>`);
   }
-  res.render('customer/track-order', { tableId: req.session.tableId, currentRoute: 'track-order' });
+  res.render('customer/track-order', { tableId: req.session.tableId,  tableName: req.session.tableName, currentRoute: 'track-order' });
 });
 
 app.get('/api/customer/orders', (req, res) => {
@@ -345,15 +311,6 @@ app.get('/api/customer/orders', (req, res) => {
 });
 
 
-// app.get('/order',function(req,res){
-// 	conn.query("SELECT * FROM foods", function (err, result) {
-// 		if (err) throw err;
-// 		console.log(result);
-// 		res.render('order',{title:'Order Now', menuData: result, currentRoute: 'order'});
-// 	});
-// });
-
-// Route: Show QR Codes (Tables)
 app.get('/order', (req, res) => {
   if (!req.session.tableId) {
     conn.query('SELECT * FROM tables WHERE isOccupied = 0', (err, tables) => {
@@ -382,16 +339,6 @@ app.get('/order', (req, res) => {
 });
 
 
-// app.get('/', async function (req, res){
-// 	const featuredItems = await getFeaturedMenuItems();
-//     // res.render('index', { currentRoute: 'index' });
-// 	res.render('index', {
-//       currentRoute: 'index',
-//   	  featuredItems: await getFeaturedMenuItems()
-//     });
-// });
-
-
 // Route: Set Selected Table
 app.post('/order/set-table/:tableId', (req, res) => {
   const tableId = req.params.tableId;
@@ -405,7 +352,7 @@ app.post('/order/set-table/:tableId', (req, res) => {
       console.log("Session set: ", req.session.tableId, req.session.tableName);
     } else {
       req.session.tableId = tableId;
-      req.session.tableName = `Table ${tableId}`; // fallback
+      req.session.tableName = `Table ${tableId}`;
     }
 
     res.redirect('/order');
@@ -433,31 +380,11 @@ app.get('/order/menu/:tableId', async (req, res) => {
     });
 });
 
-// app.post('/checkout', (req, res) => {
-//   const cart = req.body.cart;
-//   const tableId = req.session.tableId;
-
-//   if (!cart || !Array.isArray(cart)) {
-//     return res.status(400).send('Invalid cart data');
-//   }
-
-//   console.log(`Checkout for table: ${tableId}`);
-//   console.log(cart);
-
-//   // Example: Save cart items to database orders table here
-
-//   res.json({ success: true, message: 'Order placed successfully.' });
-// });
-
 
 app.post('/checkout', (req, res) => {
   const cart = req.body.cart;
   const specialInstructions = req.body.specialInstructions;
   const tableId = req.session.tableId;
-
-  console.log("Table ID:", tableId);
-  console.log("Cart:", cart);
-  console.log("Special Instructions:", specialInstructions);
 
   if (!cart || !Array.isArray(cart) || cart.length === 0) {
     return res.status(400).send('Invalid cart data');
@@ -477,19 +404,6 @@ app.post('/checkout', (req, res) => {
     const orderId = orderResult.insertId;
     console.log("New Order ID:", orderId);
 
-    // const orderItemsData = cart.map(item => [orderId, item.id, item.qty]);
-    // const insertItemsSql = "INSERT INTO orderitems (orderID, productID, quantity) VALUES ?";
-
-    // conn.query(insertItemsSql, [orderItemsData], (err) => {
-    //   if (err) {
-    //     console.error("Order items insert error:", err);
-    //     return res.status(500).send("Error saving order items");
-    //   }
-
-    //   res.json({ success: true, message: "Order placed successfully!" });
-    // });
-
-        // Use Promise.all to insert each item sequentially and save dietary prefs
     const insertPromises = cart.map(item => {
       return new Promise((resolve, reject) => {
         const insertItemSql = "INSERT INTO orderitems (orderID, productID, quantity) VALUES (?, ?, ?)";
@@ -515,20 +429,162 @@ app.post('/checkout', (req, res) => {
 
     Promise.all(insertPromises)
       .then(() => {
-        res.json({ success: true, message: "Order placed successfully!" });
+        // Estimate wait time (basic rule: 10 min + 5 min per item)
+        const totalItems = cart.reduce((sum, item) => sum + item.qty, 0);
+        const etaMinutes = 10 + totalItems * 5;
+        const eta = new Date(Date.now() + etaMinutes * 60000);
+
+        const totalPrice = cart.reduce(
+          (sum, item) => sum + item.price * item.qty,
+          0
+        );
+
+        // Build receipt
+        const receipt = {
+          orderId,
+          tableId,
+          status: "pending",
+          placedAt: new Date(),
+          eta: eta.toLocaleTimeString(),
+          items: cart.map((i) => ({
+            name: i.name,
+            qty: i.qty,
+            price: i.price,
+            subtotal: i.price * i.qty,
+            dietary: i.dietary || [],
+          })),
+          total: totalPrice.toFixed(2),
+        };
+
+        res.json({
+          success: true,
+          message: "Order placed successfully!",
+          receipt,
+        });
       })
-      .catch(err => {
-        console.error("Error during order item or dietary insert:", err);
+      .catch((err) => {
+        console.error("Error during order item insert:", err);
         res.status(500).send("Error saving order details");
       });
+  });
+});
 
+
+// Print Receipt
+const PDFDocument = require("pdfkit");
+
+app.get('/receipt/:orderId/pdf', (req, res) => {
+  const orderId = req.params.orderId;
+
+  const orderSql = `
+    SELECT o.orderID, t.tableName, o.status, o.orderTime,
+           oi.quantity, f.foodName, f.price
+    FROM orders o
+    JOIN orderitems oi ON o.orderID = oi.orderID
+    JOIN foods f ON oi.productID = f.foodID
+    JOIN tables t ON t.id = o.tableNumber
+    WHERE o.orderID = ?`;
+
+  conn.query(orderSql, [orderId], (err, rows) => {
+    if (err || rows.length === 0) {
+      return res.status(404).send("Order not found");
+    }
+
+    const doc = new PDFDocument({ margin: 50 });
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename=receipt-${orderId}.pdf`
+    );
+
+    doc.pipe(res);
+
+    // === Header ===
+    doc.fontSize(22).text("Curry Steps Restaurant", { align: "center" });
+    doc.moveDown(0.5);
+    doc.fontSize(14).text("Thank you for dining with us!", { align: "center" });
+    doc.moveDown(1);
+
+    // === Order Info ===
+    const order = rows[0];
+    doc.fontSize(12);
+    doc.text(`Order #: ${order.orderID}`);
+    doc.text(`Table: ${order.tableName}`);
+    doc.text(`Status: ${order.status}`);
+    doc.text(`Placed at: ${new Date(order.orderTime).toLocaleString()}`);
+    doc.moveDown();
+
+    // === Divider Line ===
+    doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke();
+    doc.moveDown(0.5);
+
+    // === Table Headers ===
+    doc.font("Helvetica-Bold");
+
+    const tableTop = doc.y;
+    const itemX = 50;
+    const qtyX = 300;
+    const priceX = 370;
+    const subtotalX = 460;
+
+    doc.text("Item", itemX, tableTop);
+    doc.text("Qty", qtyX, tableTop, { width: 50, align: "right" });
+    doc.text("Price", priceX, tableTop, { width: 70, align: "right" });
+    doc.text("Subtotal", subtotalX, tableTop, { width: 80, align: "right" });
+
+    doc.moveDown(0.2);
+    doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke();
+
+    // === Table Items ===
+    doc.font("Helvetica");
+    let total = 0;
+
+    rows.forEach((item) => {
+      const subtotal = item.price * item.quantity;
+      total += subtotal;
+
+      const y = doc.y + 5; // align all columns
+      doc.text(item.foodName, itemX, y, { width: 240 });
+      doc.text(item.quantity.toString(), qtyX, y, { width: 50, align: "right" });
+      doc.text(`$${item.price.toFixed(2)}`, priceX, y, { width: 70, align: "right" });
+      doc.text(`$${subtotal.toFixed(2)}`, subtotalX, y, { width: 80, align: "right" });
+
+      doc.moveDown();
+    });
+
+    // === Divider Line ===
+    doc.moveDown(0.5);
+    doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke();
+
+    // === Total ===
+    doc.moveDown(0.5);
+    doc.fontSize(14).font("Helvetica-Bold");
+    doc.text(`TOTAL: $${total.toFixed(2)}`, { align: "right" });
+    doc.font("Helvetica");
+
+    // === ETA ===
+    const etaMinutes = 10 + rows.reduce((sum, i) => sum + i.quantity, 0) * 5;
+    const eta = new Date(Date.now() + etaMinutes * 60000);
+    doc.moveDown(1);
+    doc.fontSize(12).text(`Estimated Ready Time: ${eta.toLocaleTimeString()}`, {
+      align: "center",
+    });
+
+    // === Footer ===
+    doc.moveDown(2);
+    doc.fontSize(10).text(
+      "Please present this receipt when collecting your order.",
+      { align: "center" }
+    );
+
+    doc.end();
   });
 });
 
 
 /* Chef: Track Order */
 app.get('/chef/track-order', (req, res) => {
-  const { startDate, endDate } = req.query; // optional query params
+  const { startDate, endDate } = req.query;
   res.render('chef/track-order', { 
     currentRoute: 'chef-track-order',
     startDate: startDate || '',
@@ -536,37 +592,6 @@ app.get('/chef/track-order', (req, res) => {
   });
 });
 
-
-// app.get('/api/chef/orders', (req, res) => {
-//   const sql = `
-//     SELECT 
-//       o.orderID,
-//       t.tableName,
-//       o.orderTime,
-//       o.status,
-//       f.foodName,
-//       oi.quantity,
-//       o.specialInstructions,
-//       GROUP_CONCAT(DISTINCT dp.name) AS dietary
-//     FROM Orders o
-//     JOIN Tables t ON o.tableNumber = t.id
-//     JOIN OrderItems oi ON o.orderID = oi.orderID
-//     JOIN foods f ON oi.productID = f.foodID
-//     LEFT JOIN orderitem_dietary_preferences oid ON oid.orderItemID = oi.orderItemID
-//     LEFT JOIN dietary_preferences dp ON dp.id = oid.dietaryPreferenceID
-//     WHERE oi.productID <> 0
-//     GROUP BY oi.orderItemID
-//     ORDER BY o.orderTime DESC, o.orderID DESC;
-//   `;
-
-//   conn.query(sql, (err, results) => {
-//     if (err) {
-//       console.error(err);
-//       return res.status(500).send("Error fetching chef orders");
-//     }
-//     res.json(results);
-//   });
-// });
 
 app.get('/api/chef/orders', (req, res) => {
   const { startDate, endDate } = req.query;
@@ -594,18 +619,16 @@ app.get('/api/chef/orders', (req, res) => {
   const params = [];
 
   if (startDate && endDate) {
-    // sql += ' AND o.orderTime BETWEEN ? AND ?';
-    // params.push(startDate, endDate);
     const endDateTime = new Date(new Date(endDate).getTime() + 24*60*60*1000 - 1000); // end of day
     const formattedEndDate = endDateTime.toISOString().slice(0, 19).replace('T', ' ');
 
-    sql += ' AND o.orderTime BETWEEN ? AND ?';
+    sql += ' AND o.orderTime BETWEEN ? AND ? ';
     params.push(startDate + ' 00:00:00', formattedEndDate);
   }
 
   sql += `
     GROUP BY oi.orderItemID
-    ORDER BY o.orderTime DESC, o.orderID DESC;
+    ORDER BY o.orderTime DESC, o.orderID DESC
   `;
 
   conn.query(sql, params, (err, results) => {
@@ -630,6 +653,17 @@ app.post('/api/chef/orders/:orderId/status', (req, res) => {
     }
     res.json({ success: true });
   });
+});
+
+
+app.get('/chef/chef-menu', async (req, res, next) => {
+  try {
+    const menuItems = await getAllMenuItems();
+    res.render('chef/chef-menu', {
+      adminEmail: req.session?.user?.email || 'admin@example.com',
+  	  menuItems: await getAllMenuItems()
+    });
+  } catch (err) { next(err); }
 });
 
 
@@ -685,52 +719,6 @@ app.delete('/admin/dietary/:id', (req, res) => {
 });
 
 
-// // Show form to assign dietary preferences to a food
-// app.get('/admin/menus/:foodID/dietary', (req, res) => {
-//   const foodID = req.params.foodID;
-
-//   conn.query('SELECT * FROM dietary_preferences', (err, allOptions) => {
-//     if (err) throw err;
-
-//     conn.query('SELECT dietaryPreferenceID FROM dietary_preferences WHERE foodID = ?', [foodID], (err2, selected) => {
-//       if (err2) throw err2;
-//       const selectedIds = selected.map(row => row.dietaryPreferenceID);
-
-//       res.render('admin/assign-dietary', {
-//         foodID,
-//         allOptions,
-//         selectedIds
-//       });
-//     });
-//   });
-// });
-
-// // Save assigned dietary preferences
-// app.post('/admin/menus/:foodID/dietary', (req, res) => {
-//   const foodID = req.params.foodID;
-//   const dietary = Array.isArray(req.body.dietary) ? req.body.dietary : [];
-
-//   // Delete old links first
-//   conn.query('DELETE FROM dietary_preferences WHERE foodID = ?', [foodID], (err) => {
-//     if (err) throw err;
-
-//     if (dietary.length === 0) {
-//       return res.redirect('/admin/view-menu');
-//     }
-
-//     // Insert new mappings
-//     const values = dietary.map(id => [foodID, id]);
-//     conn.query('INSERT INTO food_dietary_preferences (foodID, dietaryPreferenceID) VALUES ?', [values], (err2) => {
-//       if (err2) throw err2;
-//       res.redirect('/admin/view-menu');
-//     });
-//   });
-// });
-
-
-
-
-
 const adminRoutes = require('./routes/admin');
 app.use('/admin', adminRoutes);
 
@@ -738,7 +726,7 @@ app.get('/admin/view-users', async (req, res) => {
 	try {
 		const users = await getAllUsers();
 		res.render('admin/view-users', {
-			adminEmail: req.session?.user?.email || 'admin@example.com', // fallback
+			adminEmail: req.session?.user?.email || 'admin@example.com',
 			users
 		});
 	} catch (err) {
@@ -758,7 +746,7 @@ app.get('/admin/view-menu', async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-// customer
+// customer menu
 app.get('/customer/menu', async (req, res, next) => {
   try {
     const menuItems = await getAllMenuItems();
@@ -771,7 +759,7 @@ app.get('/customer/menu', async (req, res, next) => {
 
 app.use('/customer', require('./routes/customer'));
 
-/* Tables */
+/* Table Management */
 app.get('/admin/view-tables', async (req, res) => {
 	try {
 		const tables = await getAllTables();
@@ -818,17 +806,71 @@ app.get('/admin/view-faqs', async (req, res) => {
 
 /* REPORTS */
 app.get('/chef/chef-report', (req, res) => {
-  res.render('chef/chef-report', { currentRoute: 'chef-chef-report' });
+  res.render('chef/chef-report', { currentRoute: 'chef-report' });
 });
 
 app.get('/admin/admin-report', (req, res) => {
-  res.render('admin/admin-report', { currentRoute: 'admin-admin-report' });
+  res.render('admin/admin-report', { currentRoute: 'admin-report' });
 });
 
 app.use((req, res, next) => {
   console.log(`[${req.method}] ${req.originalUrl}`);
   next();
 });
+
+/* SEARCH */
+app.get('/search', (req, res) => {
+  const searchTerm = req.query.search || "";
+  const query = req.query.food;
+  if (!query) {
+    return res.redirect("/order-search");
+  }
+
+  const sql = `SELECT foods.foodName, foods.price, foods.description, foods.foodImage, foods.discount, foodtypes.foodType
+              FROM foods
+              INNER JOIN foodtypes ON foods.foodTypeID = foodtypes.foodTypeID
+              WHERE foods.foodName LIKE ? 
+                OR foods.price LIKE ? 
+                OR foods.description LIKE ? 
+                OR foodtypes.foodType LIKE ?`;
+  conn.query(sql, [`%${query}%`], (err, results) => {
+    if (err) throw err;
+
+    if (results.length > 0) {
+      // Take the first match and redirect
+      res.redirect(`/order-search?food=${encodeURIComponent(searchTerm)}`);
+    } else {
+      res.redirect("/order-search?food=notfound");
+    }
+  });
+});
+
+app.get('/order-search', (req, res) => {
+    if (!req.session.tableId) {
+      return res.send(`<script>alert("Please select a table first."); window.location.href = "/order";</script>`);
+    }
+    const searchTerm = '%' + (req.query.search || '') + '%';
+
+    const sql = `
+        SELECT foods.foodID, foods.foodName, foods.price, foods.description, foods.foodImage, foodtypes.foodType, foods.discount
+        FROM foods
+        INNER JOIN foodtypes ON foods.foodTypeID = foodtypes.foodTypeID
+        WHERE foods.foodName LIKE ?
+           OR foods.description LIKE ?
+           OR foodtypes.foodType LIKE ?`;
+
+    conn.query(sql, [searchTerm, searchTerm, searchTerm], (err, menuItems) => {
+        if (err) throw err;
+
+        // Get dietary preferences
+        conn.query('SELECT * FROM dietary_preferences', (err2, dietaryOptions) => {
+            if (err2) throw err2;
+
+            res.render('order-search', { menuItems, dietaryOptions, searchQuery: req.query.search || '' });
+        });
+    });
+});
+
 
 //This will be used to return to home page after the members logout.
 app.get('/logout',(req,res) => {

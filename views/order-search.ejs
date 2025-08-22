@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('partials/header1.ejs') %>
+    <link rel="stylesheet" href="/public/css/customer.css" />
+</head>
+<body>
+    <header>
+        <%- include('partials/navbar-guest.ejs') %>
+    </header>
+
+    <section id="restaurants-section">
+
+        <!-- Search Form -->
+        <form action="/order-search" method="get" class="search-item">
+            <input type="text" name="search" class="search-item-box" placeholder="Search Cuisine / Menu, Food..." value="<%= searchQuery %>"/>
+            <button class="search-item-btn"><i class="fa-solid fa-magnifying-glass"></i></button>
+        </form>
+
+        <h1>Searched Items</h1>
+
+        <div class="restaurants-container">
+            <% if (menuItems.length === 0) { %>
+                <p class="text-center text-gray-500 mt-4">No menu items found.</p>
+            <% } %>
+
+            <% menuItems.forEach(item => { %>
+                <div class="restaurant" data-aos="fade-up">
+
+                    <% if (item.discount && item.discount != 0) { %>
+                        <p class="discount"><%= item.discount %>% Off</p>
+                    <% } %>
+
+                    <div class="restaurant-thumbnail">
+                        <img src="/public/<%= item.foodImage %>" class="restaurant-img" alt="<%= item.foodName %>" />
+                    </div>
+
+                    <div class="restaurant-body">
+                        <h3 class="restaurant-name"><%= item.foodType %></h3>
+                        <p class="menu"><%= item.foodName %></p>
+                        <p class="place"><%= item.description %></p>
+                        <span class="rating">$<%= item.price %></span>
+
+                        <!-- Quantity controls -->
+                        <div class="quantity-controls" data-foodid="<%= item.foodID %>">
+                            <button type="button" class="qty-btn minus">‑</button>
+                            <span class="qty-display" id="qty-<%= item.foodID %>">1</span>
+                            <button type="button" class="qty-btn plus">+</button>
+                        </div>
+
+                        <!-- Dietary options -->
+                        <fieldset class="dietary-fieldset">
+                            <legend>Dietary Preferences</legend>
+                            <% if (dietaryOptions && dietaryOptions.length > 0) { %>
+                                <div class="dietary-options" id="dietary-<%= item.foodID %>">
+                                    <% dietaryOptions.forEach(option => { %>
+                                        <label class="dietary-label">
+                                            <input type="checkbox" name="dietary[]" value="<%= option.id %>">
+                                            <%= option.name %>
+                                        </label>
+                                    <% }) %>
+                                </div>
+                            <% } else { %>
+                                <p>No dietary options found.</p>
+                            <% } %>
+                        </fieldset>
+
+                        <!-- Add to cart -->
+                        <button class="add-cart-btn"
+                            onclick='addToCart({ id: "<%= item.foodID %>", name: "<%= item.foodName %>", price: <%= item.price %> }, "dietary-<%= item.foodID %>")'>
+                            Add to Cart
+                        </button>
+
+                    </div>
+                </div>
+            <% }) %>
+        </div>
+    </section>
+
+    <footer>
+        <%- include('partials/footer1.ejs') %>
+    </footer>
+
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+
+    <!-- Cart and quantity script -->
+    <script>
+        const quantities = {};
+
+        function getCart() { return JSON.parse(localStorage.getItem('cart') || '[]'); }
+        function setCart(cart) { localStorage.setItem('cart', JSON.stringify(cart)); }
+        function cartCount() { return getCart().reduce((sum, i) => sum + i.qty, 0); }
+        function updateCartBadge() {
+            const badge = document.getElementById('cart-count');
+            if (badge) badge.innerText = cartCount();
+        }
+
+        function getQuantity(foodId) { return quantities[foodId] || 1; }
+        function setQuantity(foodId, qty) { quantities[foodId] = qty; }
+
+        function addToCart(item, dietaryContainerId) {
+            const qty = getQuantity(item.id);
+            let cart = getCart();
+
+            const dietarySelections = [];
+            const container = document.getElementById(dietaryContainerId);
+            if(container) container.querySelectorAll('input[type="checkbox"]:checked').forEach(cb => dietarySelections.push(Number(cb.value)));
+
+            const index = cart.findIndex(c => c.id === item.id);
+            if(index > -1){
+                cart[index].qty += qty;
+                if(dietarySelections.length) cart[index].dietary = dietarySelections;
+            } else {
+                cart.push({ id: item.id, name: item.name, price: item.price, qty, dietary: dietarySelections });
+            }
+
+            setCart(cart);
+            updateCartBadge();
+            alert(`${qty} × ${item.name} added to cart\nDietary: ${dietarySelections.join(', ') || 'none'}`);
+
+            setQuantity(item.id, 1);
+            const display = document.getElementById(`qty-${item.id}`);
+            if(display) display.innerText = 1;
+
+            if(container) container.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const cart = getCart();
+
+            document.querySelectorAll('.quantity-controls').forEach(ctrl => {
+                const foodId = ctrl.dataset.foodid;
+                const existing = cart.find(c => c.id == foodId);
+                const qty = existing ? existing.qty : 1;
+                setQuantity(foodId, qty);
+                const display = document.getElementById(`qty-${foodId}`);
+                if(display) display.innerText = qty;
+            });
+
+            updateCartBadge();
+
+            document.addEventListener('click', e => {
+                if(!e.target.classList.contains('qty-btn')) return;
+                const ctrl = e.target.closest('.quantity-controls');
+                const foodId = ctrl.dataset.foodid;
+                let qty = getQuantity(foodId);
+                if(e.target.classList.contains('plus')) qty++;
+                if(e.target.classList.contains('minus')) qty = Math.max(1, qty-1);
+                setQuantity(foodId, qty);
+                const display = document.getElementById(`qty-${foodId}`);
+                if(display) display.innerText = qty;
+            });
+        });
+
+        AOS.init();
+    </script>
+</body>
+</html>
